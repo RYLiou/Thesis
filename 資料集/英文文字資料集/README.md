@@ -1,3 +1,5 @@
+## 因檔案過大放在repo中的release裡
+
 ## 英文文字資料集為Kaggle 平台上提供的Trip Advisor Hotel Reviews，評分分數為1至5分
 
 包含CBOW、Skip-gram、TFIDF與Wikiz法
