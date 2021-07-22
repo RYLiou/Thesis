@@ -1,0 +1,157 @@
+%\documentclass[12pt, oneside, a4paper]{book}
+\documentclass[12pt, a4paper]{book}
+%----- 定義使用的 packages ----------------------
+\usepackage{subcaption,booktabs,float}
+\usepackage{arydshln}
+\usepackage{algorithm}
+%\usepackage{algorithmic}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{threeparttable}
+
+\usepackage{fontspec} 						% Font selection for XeLaTeX;  
+\usepackage{xeCJK}							% 中文使用 XeCJK，但利用 \setCJKmainfont 定義粗體與斜體的字型
+\defaultfontfeatures{Mapping=tex-text} 		% to support TeX conventions like ``---''
+\usepackage{xunicode} 						% Unicode support for LaTeX character names (accents, European chars, etc)
+\usepackage{xltxtra} 						% Extra customizations for XeLaTeX
+\usepackage[sf,small]{titlesec}
+\usepackage{amsmath, amssymb}
+\usepackage{amsthm}							% theroemstyle 需要使用的套件
+\usepackage{bm}                             % 排版粗體數學符號
+\usepackage{enumerate}
+%\usepackage{graphicx, subfig, float} 		% support the \includegraphics command and options
+\usepackage{array}
+\usepackage{color, xcolor}
+\usepackage{longtable, lscape}              % 跨頁的超長表格;lscape是旋轉此類表格的
+\usepackage{threeparttable}                 % 巨集,使表格加註解更容易(手冊p169)
+\usepackage{multirow, booktabs}             % 讓表格編起來更美的套件(手冊p166),編輯跨列標題重覆的表格(手冊p182)
+\usepackage{colortbl}   
+
+\usepackage[titletoc]{appendix}
+
+\usepackage{pdfpages} %插入pdf
+
+%.............................................表格標題註解之巨集套件
+\usepackage{natbib}							% for Reference
+\usepackage{makeidx}						% for Indexing
+\usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+%\usepackage{geometry} % See geometry.pdf to learn the layout options. There are lots.
+\usepackage{geometry}
+\geometry{a4paper,%
+  paperwidth=21cm,paperheight=29.6cm,%
+  top=2.3cm,bottom=3.5cm,left=3.0cm,right=2.5cm,%
+  %showframe,%
+  nohead%
+} % End of \geometry{}
+
+% API用來 '開始使用' 和 '停止使用' 封面邊界
+\newcommand{\EnableCoverPageStyle}{%
+  \newgeometry{%
+    top=2.3cm,bottom=3cm,left=2.0cm,right=1cm,%
+    nohead,nofoot%
+  }%
+} % End of \newcommand{}
+
+\newcommand{\DisableCoverPageStyle}{\restoregeometry}
+%\usepackage[left=1.5in,right=1in,top=1in,bottom=1in]{geometry} 
+%\usepackage[left=1.5in,right=1.5in,top=1in,bottom=1in]{geometry} 
+\usepackage{framed} 
+\usepackage{titlesec}    
+\usepackage{indentfirst}
+\setlength{\parindent}{0em} %%控幾格
+\usepackage{url}                            % 文稿內徵引網址
+    \def\UrlFont{\rm}                       % 網頁
+\usepackage{fancyhdr}
+	\pagestyle{fancy}
+	\fancyhf{}                              % 清除所有頁眉頁足
+	\renewcommand{\headrulewidth}{0pt}      % 頁眉下方的橫線    
+%-----------------------------------------------------------------------------------------------------------------------
+%  主字型設定
+\setCJKmainfont
+	[AutoFakeBold=true,AutoFakeSlant=true]
+%	{cwTeX Q Ming Medium} 					% 設定中文內文字型
+	{標楷體}	
+\setmainfont{Times New Roman}				% 設定英文內文字型
+\setsansfont{Arial}							% used with {\sffamily ...}
+%\setsansfont[Scale=MatchLowercase,Mapping=tex-text]{Gill Sans}
+\setmonofont{Courier New}					% used with {\ttfamily ...}
+%\setmonofont[Scale=MatchLowercase]{Andale Mono}
+% 其他字型（隨使用的電腦安裝的字型不同，用註解的方式調整（打開或關閉））
+% 英文字型
+\newfontfamily{\R}{Imprint MT Shadow}
+\newfontfamily{\E}{Cambria}
+\newfontfamily{\A}{Arial}
+\newfontfamily{\C}[Scale=0.9]{Cambria}
+\newfontfamily{\TT}[Scale=0.8]{Times New Roman}
+% 中文字型
+\newCJKfontfamily{\MB}{微軟正黑體}			% 適用在 Mac 與 Win
+\newCJKfontfamily{\SM}[Scale=0.8]{新細明體}	% 縮小版
+\newCJKfontfamily{\K}{標楷體}                % Windows 下的標楷體
+%\newCJKfontfamily{\K}{Kaiti TC Regular}    % Mac OS 下的標楷體
+%\newCJKfontfamily{\BM}{Heiti TC Medium}	% Mac OS 下的黑體（粗體）
+%\newCJKfontfamily{\SR}{Songti TC Regular}	% Mac OS 下的宋體
+%\newCJKfontfamily{\SB}{Songti TC Bold}		% Mac OS 下的宋體（粗體）
+%\newCJKfontfamily{\CF}{cwTeX Q Fangsong Medium}	% CwTex 仿宋體
+%\newCJKfontfamily{\CB}{cwTeX Q Hei Bold}			% CwTex 粗黑體
+%\newCJKfontfamily{\CK}{cwTeX Q Kai Medium}   		% CwTex 楷體
+%\newCJKfontfamily{\CM}{cwTeX Q Ming Medium}		% CwTex 明體
+%\newCJKfontfamily{\CR}{cwTeX Q Yuan Medium}		% CwTex 圓體
+%-----------------------------------------------------------------------------------------------------------------------
+\XeTeXlinebreaklocale "zh"                  		%這兩行一定要加，中文才能自動換行
+\XeTeXlinebreakskip = 0pt plus 1pt     
+%-----------------------------------------------------------------------------------------------------------------------
+%----- 重新定義的指令 ---------------------------
+\newcommand{\cw}{\texttt{cw}\kern-.6pt\TeX}			% 這是 cwTex 的 logo 文字
+\newcommand{\imgdir}{images/}						% 設定圖檔的位置
+\renewcommand{\tablename}{表}						% 改變表格標號文字為中文的「表」（預設為 Table）
+\renewcommand{\figurename}{圖}						% 改變圖片標號文字為中文的「圖」（預設為 Figure）
+\renewcommand{\contentsname}{目~錄}
+\renewcommand\listfigurename{圖目錄}
+\renewcommand\listtablename{表目錄}
+\renewcommand{\appendixname}{附~錄}                  
+\renewcommand{\indexname}{索引}
+\renewcommand{\bibname}{參考文獻}
+%-----------------------------------------------------------------------------------------------------------------------
+
+\theoremstyle{plain}
+\newtheorem{de}{Definition}[section]				%definition獨立編號
+\newtheorem{thm}{定理}[section]						%theorem 獨立編號，取中文名稱並給予不同字型
+\newtheorem{lemma}[thm]{引理}						%lemma 與 theorem 共用編號
+\newtheorem{ex}{{\E Example}}						%example 獨立編號，不編入小節數字，走流水號。也換個字型。
+\newtheorem{cor}{Corollary}[section]				%not used here
+\newtheorem{exercise}{EXERCISE}						%not used here
+\newtheorem{re}{\emph{Result}}[section]				%not used here
+\newtheorem{axiom}{AXIOM}							%not used here
+\renewcommand{\proofname}{\textbf{Proof}}			%not used here
+
+\newcommand{\loflabel}{圖} 							% 圖目錄出現 圖 x.x 的「圖」字
+\newcommand{\lotlabel}{表}  							% 表目錄出現 表 x.x 的「表」字
+
+\parindent=0pt
+
+%--- 去除圖表冒號 ---
+\usepackage{caption}
+\DeclareCaptionLabelSeparator{twospace}{\ ~}
+\captionsetup{labelsep=twospace}
+%------------------
+
+%--- 其他定義 ----------------------------------
+% 定義章節標題的字型、大小
+\titleformat{\chapter}[display]{\centering\LARGE\K\bf}		% 定義章抬頭靠右（\reggedleft）
+ { 第\ \thechapter\ 章}{0.2cm}{}
+%\titleformat{\chapter}[hang]{\centering\LARGE\sf}{\MB 第~\thesection~章}{0.2cm}{}%控制章的字體
+%\titleformat{\section}[hang]{\Large\sf}{\MB 第~\thesection~節}{0.2cm}{}%控制章的字體
+%\titleformat{\subsection}[hang]{\centering\Large\sf}{\MB 第~\thesubsection~節}{0.2cm}{}%控制節的字體
+\titleformat*{\section}{\normalfont\Large\bf}
+\titleformat*{\subsection}{\normalfont\large\bf}
+\titleformat*{\subsubsection}{\normalfont\bf}
+
+
+% 顏色定義
+\definecolor{heavy}{gray}{.9}						% 0.9深淺度之灰色
+\definecolor{light}{gray}{.8}
+\definecolor{pink}{rgb}{0.99,0.91,0.95}             % 定義pink顏色

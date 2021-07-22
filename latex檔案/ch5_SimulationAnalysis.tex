@@ -1,0 +1,1576 @@
+%\input{preamble1}
+%\usepackage{wallpaper}                                          % 使用浮水印
+%\CenterWallPaper{0.6}{images/ntpu.eps}                           % 浮水印圖檔
+%\begin{document}
+\fontsize{12}{22pt}\selectfont
+\cleardoublepage
+\thispagestyle{empty}
+\setlength{\parindent}{2em}
+\chapter{實例分析與模擬研究}
+	本章節會列出13筆數值與類別型態資料於第3節介紹之五種分類模型之下的預測結果，以及利用統計模擬的方法產生符合比例賠率假設(Proportional odds assumption)的模擬資料於五種模型的預測結果，並會比較不平衡資料重抽樣與否對於結果的差異，最後則是會將中英文評論資料搭配不同詞嵌入方法處理後，比較在次序型分類模型與名目型分類模型的預測結果。
+	
+	本研究Cumulative Logit Model使用Christensen（2019）提出的ordinal:: clm；Continuation-Ratio Logit Model與Adjacent-Category Logit Model使用Yee（2020）提出的VGAM:: vglm；樸素貝葉斯使用Meyer等（2021）提出的e1071:: naiveBayes；邏輯斯模型使用Venables（2002）提出的nnet:: multinom;比例賠率假設檢定使用Christensen（2019）提出的ordinal:: nominal\underline{ }test。
+
+\section{實例分析}
+	首先我們使用每個資料集中的70\%做為訓練集建立五種模型，並將其餘30\%做為測試集利用衡量指標檢視模型預測能力，總共有13組資料集，每個資料集我們將重複執行50次並將結果紀錄以檢視其平均與標準差，如4.1.1中所介紹，將分為未重抽樣建模與重抽樣建模來看，表5.3和表5.4為各資料集於A.「未重抽樣資料建模」與B.「重抽樣資料建模」兩種方法建模並預測測試集之概觀結果，比較模型預測能力，而表5.1(a)-(m)為13組資料集於A方法的詳細結果，表5.2(a)-(m)為13組資料集於B方法的詳細結果，其中各衡量指標(MSE、Accuracy、Macro-F1)表現最佳以顏色底標示。綜合三指標結果得出各組資料對應之最佳模型，比方從表5.1(a)可看出邏輯斯模型表現最佳，以此類推，將結果整理於表5.3。
+	
+	從表5.3(a)與表5.4(a)中可以發現到名目型分類模型與次序型分類模型的表現是差不多的，前者7組資料及表現較優，後者在6組資料及表現較優，表現優劣勢根據MSE、Accuracy以及Macro-F1三種衡量指標的綜合表現，而從表5.3(b)與表5.4(b)中可以觀察到各模型中以多元邏輯斯模型為最佳，這也讓我們疑惑，為何次序型資料在次序型分類模型中沒有表現的較好，參考到Agresti（2003）一書中所提到Cumulative Logit Model必需建立在比例賠率假設(Proportional odds assumption)之下，關於此假設詳細說明在本文3.3.1，符合比例賠率假設之下的Cumulative Logit Model優點是易於解釋與總結，且每個預測變量只需要一個參數，下面我們將檢定這13組資料是否符合比例賠率假設，結果顯示一般而言，當資料符合該假設時，次序型分類模型的預測能力優於名目行分類模型，反之則較差，檢定結果詳列於表5.5。表5.5為對13組資料集使用概似比檢定的結果，關於此假設與檢定在章節3.3.1節。與表5.3比較可以發現，在次序型分類模型表現較好的資料集2、4、5、7、9與13中不違反此假設的變數比例較高，其餘資料集違反此假設的變數比例較高的則是在名目型分類模型表現較佳。
+	
+
+\newpage
+
+% BIGTABLE A
+\begin{table}[H]
+\caption{各資料集於A方法未重抽樣建模，未重抽樣預測於五種分類模型預測結果}
+\label{table.5.1.A}
+
+
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.676(0.045) & 0.562(0.019) & 0.506(0.025) \\ 
+Naive  & 0.85(0.231)  & 0.556(0.035) & 0.496(0.035) \\ 
+Logis  & 0.681(0.048) & \cellcolor[HTML]{FFCE93}0.574(0.018) & \cellcolor[HTML]{FFCE93}0.525(0.022) \\ 
+cratio & 0.684(0.047) & 0.568(0.019) & 0.504(0.024) \\ 
+acat   & 0.703(0.042) & 0.554(0.018) & 0.491(0.024) \\ \hline
+\end{tabular}
+
+\caption{Dataset1於A方法五種分類模型預測結果}\label{tab.5.1.1a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.522(0.034) & 0.647(0.019) & \cellcolor[HTML]{FFCE93}0.476(0.047) \\ 
+Naive  & 0.814(0.479) & 0.617(0.045) & 0.405(0.032) \\ 
+Logis  & 0.545(0.037) & 0.646(0.016) & 0.469(0.043) \\ 
+cratio & 0.53(0.035)  & 0.645(0.018) & 0.47(0.041)  \\ 
+acat   & 0.55(0.033)  & \cellcolor[HTML]{FFCE93}0.647(0.017) & 0.463(0.049) \\ \hline
+\end{tabular}
+
+    \caption{Dataset2於A方法五種分類模型預測結果}\label{tab.5.1.2a}
+    \vspace{0.5cm}
+}\end{subtable}
+\hfill
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 1.39(0.069)  & 0.483(0.017) & 0.538(0.02)  \\ 
+Naive  & \cellcolor[HTML]{FFCE93}1.135(0.087) & 0.469(0.024) & 0.468(0.024) \\ 
+Logis  & 1.244(0.067) & \cellcolor[HTML]{FFCE93}0.512(0.021) & 0.487(0.023) \\ 
+cratio & 1.381(0.068) & 0.485(0.017) & \cellcolor[HTML]{FFCE93}0.542(0.02)  \\ 
+acat   & 1.388(0.066) & 0.484(0.016) & 0.539(0.019) \\ \hline 
+
+\end{tabular}
+
+\caption{Dataset3於A方法五種分類模型預測結果}\label{tab.5.1.3a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 6.271(0.008) & \cellcolor[HTML]{FFCE93}0.469(0)     & \cellcolor[HTML]{FFCE93}0.638(0)     \\ 
+Naive  & \cellcolor[HTML]{FFCE93}6.23(0.096)  & 0.469(0.005) & 0.364(0.083) \\ 
+Logis  & 6.249(0.066) & 0.468(0.004) & 0.365(0.1)   \\ 
+cratio & 6.277(0.036) & 0.468(0.002) & 0.621(0.07)  \\ 
+acat   & 6.269(0)     & \cellcolor[HTML]{FFCE93}0.469(0)     & \cellcolor[HTML]{FFCE93}0.638(0)     \\ \hline
+\end{tabular}
+
+    \caption{Dataset4於A方法五種分類模型預測結果}\label{tab.5.1.4a}
+    \vspace{0.5cm}
+}\end{subtable}
+
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.676(0.045) & 0.562(0.019) & 0.506(0.025) \\ 
+Naive  & 0.85(0.231)  & 0.556(0.035) & 0.496(0.035) \\ 
+Logis  & 0.681(0.048) & \cellcolor[HTML]{FFCE93}0.574(0.018) & \cellcolor[HTML]{FFCE93}0.525(0.022) \\ 
+cratio & 0.684(0.047) & 0.568(0.019) & 0.504(0.024) \\ 
+acat   & 0.703(0.042) & 0.554(0.018) & 0.491(0.024) \\ \hline
+\end{tabular}
+
+\caption{Dataset5於A方法五種分類模型預測結果}\label{tab.5.1.5a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 0.082(0.009) & 0.922(0.008) & 0.801(0.028) \\ 
+Naive  & 0.208(0.021) & 0.851(0.013) & 0.647(0.04)  \\ 
+Logis  & \cellcolor[HTML]{FFCE93}0.08(0.012)  & \cellcolor[HTML]{FFCE93}0.934(0.009) & \cellcolor[HTML]{FFCE93}0.88(0.028)  \\ 
+cratio & 0.082(0.01)  & 0.921(0.008) & 0.8(0.03)    \\ 
+acat   & 0.084(0.009) & 0.921(0.008) & 0.791(0.027) \\ \hline
+\end{tabular}
+
+    \caption{Dataset6於A方法五種分類模型預測結果}\label{tab.5.1.6a}
+    \vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}2.477(0.012) & 0.278(0.002) & 0.257(0.002) \\ 
+Naive  & 2.914(0.043) & 0.272(0.002) & 0.232(0.002) \\ 
+Logis  & 2.68(0.022)  & \cellcolor[HTML]{FFCE93}0.283(0.001) & 0.232(0.002) \\ 
+cratio & 2.548(0.014) & 0.279(0.002) & \cellcolor[HTML]{FFCE93}0.34(0.002)  \\ 
+acat   & 2.501(0.013) & 0.278(0.001) & 0.256(0.001) \\ \hline
+\end{tabular}
+
+\caption{Dataset7於A方法五種分類模型預測結果}\label{tab.5.1.7a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.543(0.057) & 0.568(0.03)  & 0.56(0.029)  \\ 
+Naive  & 0.7(0.08)    & 0.565(0.028) & 0.546(0.031) \\ 
+Logis  & 0.547(0.092) & \cellcolor[HTML]{FFCE93}0.644(0.029) & \cellcolor[HTML]{FFCE93}0.64(0.03)   \\ 
+cratio & 0.555(0.053) & 0.558(0.03)  & 0.552(0.029) \\ 
+acat   & 0.563(0.054) & 0.567(0.027) & 0.556(0.027) \\ \hline
+\end{tabular}
+
+    \caption{Dataset8於A方法五種分類模型預測結果}\label{tab.5.1.8a}
+    \vspace{0.5cm}
+}\end{subtable}
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 3.218(0.171) & 0.288(0.019) & 0.256(0.018) \\ 
+Naive  & \cellcolor[HTML]{FFCE93}3.111(0.223) & 0.272(0.019) & 0.259(0.019) \\ 
+Logis  & 3.094(0.21)  & 0.273(0.022) & 0.26(0.021)  \\ 
+cratio & 3.391(0.18)  & 0.291(0.022) & \cellcolor[HTML]{FFCE93}0.292(0.033) \\ 
+acat   & 3.49(0.213)  & \cellcolor[HTML]{FFCE93}0.292(0.023) & 0.27(0.035)  \\ \hline
+\end{tabular}
+
+\caption{Dataset9於A方法五種分類模型預測結果}\label{tab.5.1.9a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.771(0.017) & 0.525(0.005) & 0.528(0.005) \\ 
+Naive  & 1.33(0.037)  & 0.473(0.006) & 0.447(0.009) \\ 
+Logis  & 0.792(0.017) & \cellcolor[HTML]{FFCE93}0.558(0.005) & \cellcolor[HTML]{FFCE93}0.554(0.005) \\ 
+cratio & 0.788(0.015) & 0.516(0.006) & 0.517(0.005) \\ 
+acat   & 0.788(0.017) & 0.523(0.005) & 0.522(0.005) \\ \hline
+\end{tabular}
+
+    \caption{Dataset10於A方法五種分類模型預測結果}\label{tab.5.1.10a}
+    \vspace{0.5cm}
+}\end{subtable}
+\end{table}
+
+\begin{table}[]
+\ContinuedFloat
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy    & Macro-F1     \\ \hline
+Clm    & 2.548(0.074) & 0.331(0.01) & 0.345(0.023) \\ 
+Naive  & 4.149(0.252) & 0.31(0.01)  & 0.317(0.02)  \\ 
+Logis  & \cellcolor[HTML]{FFCE93}2.513(0.102) & \cellcolor[HTML]{FFCE93}0.367(0.01) & \cellcolor[HTML]{FFCE93}0.352(0.01)  \\ 
+cratio & 2.686(0.09)  & 0.311(0.01) & 0.352(0.02)  \\ 
+acat   & 2.602(0.086) & 0.324(0.01) & 0.318(0.011) \\ \hline
+\end{tabular}
+
+\caption{Dataset11於A方法五種分類模型預測結果}\label{tab.5.1.11a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 0.326(0.026) & 0.697(0.022) & 0.727(0.022) \\ 
+Naive  & 0.314(0.037) & 0.747(0.018) & 0.753(0.017) \\ 
+Logis  & \cellcolor[HTML]{FFCE93}0.194(0.035) & \cellcolor[HTML]{FFCE93}0.835(0.023) & \cellcolor[HTML]{FFCE93}0.846(0.023) \\ 
+cratio & 0.325(0.027) & 0.698(0.023) & 0.728(0.022) \\ 
+acat   & 0.331(0.027) & 0.692(0.023) & 0.722(0.022) \\ \hline
+\end{tabular}
+
+    \caption{Dataset12於A方法五種分類模型預測結果}\label{tab.5.1.12a}
+    \vspace{0.5cm}
+}\end{subtable}
+
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.981(0.12)  & \cellcolor[HTML]{FFCE93}0.511(0.026) & \cellcolor[HTML]{FFCE93}0.513(0.025) \\ 
+Naive  & 1.21(0.103)  & 0.473(0.03)  & 0.455(0.032) \\ 
+Logis  & 1.073(0.11)  & 0.482(0.029) & 0.474(0.028) \\ 
+cratio & 0.994(0.113) & 0.5(0.028)   & 0.5(0.026)   \\ 
+acat   & 1.018(0.116) & 0.507(0.024) & 0.503(0.022) \\ \hline
+\end{tabular}
+
+    \caption{Dataset13於A方法五種分類模型預測結果}\label{tab.5.1.13a}
+    \vspace{0.5cm}
+}\end{subtable}
+\end{table}
+
+
+% BIGTABLE B
+\begin{table}[H]
+\caption{各資料集於B方法未重抽樣建模，未重抽樣預測於五種分類模型預測結果}
+\label{table.5.1.B}
+
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 0.745(0.049) & 0.511(0.02)  & 0.482(0.019) \\ 
+Naive  & 1.276(0.644) & 0.49(0.077)  & 0.434(0.056) \\ 
+Logis  & 0.842(0.069) & \cellcolor[HTML]{FFCE93}0.534(0.024) & \cellcolor[HTML]{FFCE93}0.492(0.022) \\ 
+cratio & \cellcolor[HTML]{FFCE93}0.73(0.047)  & 0.528(0.021) & 0.49(0.019)  \\ 
+acat   & 0.778(0.048) & 0.515(0.02)  & 0.479(0.019) \\ \hline
+\end{tabular}
+
+\caption{Dataset1於B方法五種分類模型預測結果}\label{tab.5.1.1b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 0.738(0.071) & 0.605(0.024) & 0.453(0.024) \\ 
+Naive  & 1.049(0.592) & 0.585(0.059) & 0.415(0.043) \\ 
+Logis  & 0.865(0.108) & 0.6(0.022)   & 0.429(0.026) \\ 
+cratio & \cellcolor[HTML]{FFCE93}0.688(0.055) & \cellcolor[HTML]{FFCE93}0.621(0.021) & \cellcolor[HTML]{FFCE93}0.456(0.023) \\ 
+acat   & 0.795(0.077) & 0.604(0.023) & 0.439(0.024) \\ \hline
+\end{tabular}
+
+    \caption{Dataset2於B方法五種分類模型預測結果}\label{tab.5.1.2b}
+    \vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 1.143(0.062) & 0.465(0.028) & 0.438(0.028) \\ 
+Naive  & 1.095(0.085) & 0.456(0.022) & 0.455(0.023) \\ 
+Logis  & \cellcolor[HTML]{FFCE93}1.086(0.072) & \cellcolor[HTML]{FFCE93}0.506(0.022) & \cellcolor[HTML]{FFCE93}0.502(0.022) \\ 
+cratio & 1.15(0.065)  & 0.462(0.025) & 0.437(0.024) \\ 
+acat   & 1.192(0.062) & 0.472(0.026) & 0.432(0.027) \\ \hline
+\end{tabular}
+
+\caption{Dataset3於B方法五種分類模型預測結果}\label{tab.5.1.3b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 7.197(0.447) & 0.304(0.02)  & 0.199(0.023) \\ 
+Naive  & \cellcolor[HTML]{FFCE93}6.103(0.401) & 0.253(0.025) & 0.19(0.017)  \\ 
+Logis  & 6.237(0.424) & 0.25(0.027)  & 0.192(0.019) \\ 
+cratio & 7.153(0.459) & 0.321(0.02)  & \cellcolor[HTML]{FFCE93}0.232(0.041) \\ 
+acat   & 7.668(0.471) & \cellcolor[HTML]{FFCE93}0.325(0.018) & 0.195(0.025) \\ \hline
+\end{tabular}
+
+    \caption{Dataset4於B方法五種分類模型預測結果}\label{tab.5.1.4b}
+    \vspace{0.5cm}
+}\end{subtable}
+
+\hfill
+\end{table}
+
+\begin{table}[H]
+\ContinuedFloat
+
+
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 2.652(0.298) & 0.302(0.034) & 0.231(0.026) \\ 
+Naive  & 2.723(0.397) & 0.321(0.041) & \cellcolor[HTML]{FFCE93}0.253(0.033) \\ 
+Logis  & 2.825(0.323) & 0.297(0.038) & 0.244(0.036) \\ 
+cratio & \cellcolor[HTML]{FFCE93}2.354(0.281) & \cellcolor[HTML]{FFCE93}0.332(0.027) & 0.246(0.025) \\ 
+acat   & 2.735(0.332) & 0.312(0.029) & 0.231(0.024) \\ \hline
+\end{tabular}
+
+\caption{Dataset5於B方法五種分類模型預測結果}\label{tab.5.1.5b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.097(0.016) & \cellcolor[HTML]{FFCE93}0.914(0.012) & \cellcolor[HTML]{FFCE93}0.821(0.026) \\ 
+Naive  & 0.223(0.025) & 0.825(0.018) & 0.747(0.03)  \\ 
+Logis  & 0.419(0.183) & 0.85(0.033)  & 0.756(0.049) \\ 
+cratio & 0.099(0.022) & 0.913(0.018) & 0.821(0.03)  \\ 
+acat   & 0.121(0.026) & 0.892(0.022) & 0.806(0.031) \\ \hline
+\end{tabular}
+
+    \caption{Dataset6於B方法五種分類模型預測結果}\label{tab.5.1.6b}
+    \vspace{0.5cm}
+}\end{subtable}
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}3.34(0.02)   & 0.258(0.002) & \cellcolor[HTML]{FFCE93}0.245(0.002) \\ 
+Naive  & 4.139(0.035) & \cellcolor[HTML]{FFCE93}0.245(0.002) & 0.203(0.002) \\ 
+Logis  & 3.777(0.043) & 0.257(0.005) & 0.225(0.01)  \\ 
+cratio & 3.438(0.019) & 0.262(0.002) & 0.24(0.001)  \\ 
+acat   & 3.639(0.02)  & 0.255(0.002) & 0.228(0.002) \\ \hline
+\end{tabular}
+
+\caption{Dataset7於B方法五種分類模型預測結果}\label{tab.5.1.7b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.562(0.063) & 0.567(0.031) & 0.561(0.032) \\ 
+Naive  & 0.73(0.116)  & 0.567(0.034) & 0.543(0.04)  \\ 
+Logis  & 0.562(0.103) & \cellcolor[HTML]{FFCE93}0.642(0.032) & \cellcolor[HTML]{FFCE93}0.637(0.033) \\ 
+cratio & 0.565(0.053) & 0.563(0.03)  & 0.558(0.032) \\ 
+acat   & 0.568(0.054) & 0.565(0.03)  & 0.557(0.031) \\ \hline
+\end{tabular}
+
+    \caption{Dataset8於B方法五種分類模型預測結果}\label{tab.5.1.8b}
+    \vspace{0.5cm}
+}\end{subtable}
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 3.141(0.241) & 0.293(0.025) & \cellcolor[HTML]{FFCE93}0.269(0.028) \\ 
+Naive  & \cellcolor[HTML]{FFCE93}3.04(0.21)   & 0.265(0.024) & 0.255(0.023) \\ 
+Logis  & 3.086(0.235) & 0.266(0.023) & 0.256(0.022) \\ 
+cratio & 3.22(0.223)  & 0.288(0.027) & 0.259(0.027) \\ 
+acat   & 3.403(0.225) & \cellcolor[HTML]{FFCE93}0.29(0.021)  & 0.251(0.021) \\ \hline
+\end{tabular}
+
+\caption{Dataset9於B方法五種分類模型預測結果}\label{tab.5.1.9b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.77(0.014)  & 0.525(0.006) & 0.528(0.006) \\ 
+Naive  & 1.339(0.045) & 0.473(0.007) & 0.448(0.011) \\ 
+Logis  & 0.794(0.014) & \cellcolor[HTML]{FFCE93}0.557(0.004) & \cellcolor[HTML]{FFCE93}0.554(0.004) \\ 
+cratio & 0.787(0.013) & 0.516(0.006) & 0.518(0.006) \\ 
+acat   & 0.787(0.015) & 0.523(0.006) & 0.522(0.006) \\ \hline
+\end{tabular}
+
+    \caption{Dataset10於B方法五種分類模型預測結果}\label{tab.5.1.10b}
+    \vspace{0.5cm}
+}\end{subtable}
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & 2.66(0.089)  & 0.333(0.011) & 0.341(0.011) \\ 
+Naive  & 4.362(0.319) & 0.302(0.01)  & 0.314(0.021) \\ 
+Logis  & \cellcolor[HTML]{FFCE93}2.715(0.136) & \cellcolor[HTML]{FFCE93}0.356(0.011) & \cellcolor[HTML]{FFCE93}0.351(0.012) \\ 
+cratio & 2.83(0.089)  & 0.316(0.011) & 0.323(0.011) \\ 
+acat   & 2.661(0.095) & 0.329(0.012) & 0.33(0.013)  \\ \hline
+\end{tabular}
+
+\caption{Dataset11於B方法五種分類模型預測結果}\label{tab.5.1.11b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.329(0.028) & 0.693(0.025) & 0.724(0.022) \\ 
+Naive  & 0.331(0.043) & 0.744(0.02)  & 0.747(0.02)  \\ 
+Logis  & 0.223(0.045) & \cellcolor[HTML]{FFCE93}0.819(0.022) & \cellcolor[HTML]{FFCE93}0.831(0.02)  \\ 
+cratio & 0.33(0.028)  & 0.693(0.024) & 0.724(0.022) \\ 
+acat   & 0.33(0.027)  & 0.692(0.024) & 0.724(0.022) \\ \hline
+\end{tabular}
+
+    \caption{Dataset12於B方法五種分類模型預測結果}\label{tab.5.1.12b}
+    \vspace{0.5cm}
+}\end{subtable}
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.003(0.108) & \cellcolor[HTML]{FFCE93}0.504(0.033) & \cellcolor[HTML]{FFCE93}0.505(0.032) \\ 
+Naive  & 1.252(0.124) & 0.465(0.028) & 0.451(0.031) \\ 
+Logis  & 1.141(0.098) & 0.475(0.026) & 0.467(0.026) \\ 
+cratio & 1.017(0.107) & 0.49(0.031)  & 0.49(0.031)  \\ 
+acat   & 1.042(0.104) & 0.5(0.031)   & 0.496(0.031) \\ \hline
+\end{tabular}
+
+    \caption{Dataset13於B方法五種分類模型預測結果}\label{tab.5.1.13b}
+    \vspace{0.5cm}
+}\end{subtable}
+\end{table}
+
+% table A
+\begin{table}[H]
+\centering
+\caption{各資料集於A方法預測狀況}
+\label{tab.5.1.A1}
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \extrarowheight=5pt
+	\setlength{\tabcolsep}{5mm}{
+	\begin{tabular}{ccc}
+	\hline
+        & 名目型分類模型                   & 次序型分類模型              \\ \hline
+Dataset & 1, 3, 6, 8, 10, 11, 12 & 2, 4, 5, 7, 9, 13\\
+	\hline
+\end{tabular}
+    \caption{各資料集於分類模型預測成效}\label{tab.5.1.a1}
+}\end{subtable}
+
+\hfill
+\vspace{0.5cm}
+
+\begin{subtable}[H]{.78\linewidth}
+	\footnotesize
+    \extrarowheight=5pt
+	\setlength{\tabcolsep}{5mm}{
+	\begin{tabular}{cccccc}
+	\hline
+        & Clm      & Naive & Logistic               & cratio & acat \\ \hline
+Dataset & 2, 5, 13 &       & 1, 3, 6, 8, 10, 11, 12 & 7, 9   & 4   \\ \hline
+\end{tabular}
+    \caption{各資料集於五種分類模型預測成效}\label{tab.5.1.a2}
+}\end{subtable}
+
+\end{table}
+
+% table B
+\begin{table}[H]
+\centering
+\caption{各資料集於B方法預測狀況}
+\label{tab.5.1.B1}
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \extrarowheight=5pt
+	\setlength{\tabcolsep}{5mm}{
+\begin{tabular}{ccc}
+\hline
+        & 名目型分類模型                   & 次序型分類模型              \\ \hline
+Dataset & 1, 6, 8, 10, 11, 12 & 2, 3, 4, 5, 7, 9, 13 \\ \hline
+\end{tabular}
+    \caption{各資料集於分類模型預測成效}\label{tab.5.1.b1}
+}\end{subtable}
+
+\hfill
+\vspace{0.5cm}
+
+
+\begin{subtable}[H]{.78\linewidth}
+	\footnotesize
+    \extrarowheight=5pt
+	\setlength{\tabcolsep}{5mm}{
+\begin{tabular}{cccccc}
+\hline
+        & Clm         & Naive & Logistic            & cratio  & acat \\ \hline
+Dataset & 6, 7, 9, 13 &       & 1, 3, 8, 10, 11, 12 & 2, 4, 5 &     \\ \hline
+\end{tabular}
+    \caption{各資料集於五種分類模型預測成效}\label{tab.5.1.b2}
+}\end{subtable}
+\end{table}
+
+
+\begin{table}[H]
+	\small
+    \centering
+    \extrarowheight=5pt
+    \caption{13組資料集概似比檢定結果}\label{tab.5.1.2}
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccccccc}
+\hline
+Dataset                                                                & 1                                                                   & 2                                                                          & 3                          & 4                                                        & 5                                                                               & 6                                                                                       & 7                        \\ \hline
+\begin{tabular}[c]{@{}c@{}}Variables\\ (不含Y)\end{tabular}                & 9                                                                  & 9                                                                         & 9 & 6                                                        & 9                                                                              & 6                                                                                       & 10                       \\ \hline
+\begin{tabular}[c]{@{}c@{}}不拒絕比例賠率假設 \\ 之變數 \end{tabular} & \begin{tabular}[c]{@{}c@{}}V4, V5, V6,\\  V9, V10\end{tabular}      & \begin{tabular}[c]{@{}c@{}}V2, V3, V4,\\ V5, V6, V7,\\ V8, V9\end{tabular} & V6                         & \begin{tabular}[c]{@{}c@{}}V2, V3,\\ V6, V7\end{tabular} & \begin{tabular}[c]{@{}c@{}}V2, V3, V4,\\ V5, V6, V7,\\ V8, V9, V10\end{tabular} & V4                                                                                      & V8, V10                  \\ \hline
+\multicolumn{1}{l}{}                                                   & \multicolumn{1}{l}{}                                                & \multicolumn{1}{l}{}                                                       & \multicolumn{1}{l}{}       & \multicolumn{1}{l}{}                                     & \multicolumn{1}{l}{}                                                            & \multicolumn{1}{l}{}                                                                    & \multicolumn{1}{l}{}     \\ \hline
+Dataset                                                                & 8                                                                   & 9                                                                          & 10                         & 11                                                       & 12                                                                              & 13                                                                                      &                          \\ \hline
+\begin{tabular}[c]{@{}c@{}}Variables\\ (不含Y)\end{tabular}                & 13                                                                  & 4                                                                          & 9 & 6                                                        & 9                                                                              & 6                                                                                       &  \\ \hline
+\begin{tabular}[c]{@{}c@{}}不拒絕比例賠率假設 \\ 之變數 \end{tabular} & \begin{tabular}[c]{@{}c@{}}V2, V3, V4,\\  V6, V13, V14 \\ \end{tabular} & \begin{tabular}[c]{@{}c@{}}V2, V3,\\ V4,V5\end{tabular}                    &                            &                                                          &                                                                                 & \begin{tabular}[c]{@{}c@{}}V2, V3, V4\\ V5, V6, V7\end{tabular} &                          \\ \hline
+\end{tabular}
+}\end{table}
+
+
+	根據上述結論讓我們不禁好奇，雖然過去傳統統計模型強調「解釋能力」（配適能力），但若符合前提假設也就是模型配適的更好之下，是否也保證有較佳的預測能力，下章節將使用統計模擬驗證此論證。
+
+
+\section{統計模擬}
+
+	本章節我們將利用統計模擬的方法來驗證，當資料符合模型前提假設之下，除了有良好的解釋能力以外，同時也會有較佳的預測能力，透過由次序型分類模型的分配生成資料的統計模擬的方法，我們分別產生1到10個維度的資料並將反應變數固定在1到5的區間，每個資料集的資料筆數皆為50000筆，而各模擬資料皆為不平衡資料如表\ref{tab.5.2.1}，詳細模擬資料生成方法在本文3.3.1。
+
+	使用前面所提到的概似比檢定來檢定上述模擬資料生成的方式是否符合比例賠率假設，檢定結果顯示該方法所生成的10組資料的各個變數皆符合比例賠率假設。
+
+\begin{table}[H]
+	\small
+    \centering
+    \extrarowheight=5pt
+    \caption{模擬資料目標變數樣態}\label{tab.5.2.1}
+\setlength{\tabcolsep}{5mm}{
+\begin{tabular}{cccccc}
+\hline
+Y      & 1     & 2     & 3     & 4     & 5     \\ \hline
+Data1  & 3259  & 3030  & 1501  & 16495 & 25715 \\
+Data2  & 29030 & 9141  & 11768 & 18    & 43    \\
+Data3  & 40795 & 2002  & 2134  & 276   & 4793  \\
+Data4  & 31196 & 2570  & 4396  & 3933  & 7905  \\
+Data5  & 18721 & 4495  & 17750 & 5417  & 3617  \\
+Data6  & 30149 & 3101  & 8100  & 4207  & 4443  \\
+Data7  & 31122 & 12727 & 1981  & 3269  & 901   \\
+Data8  & 23641 & 3966  & 2221  & 6466  & 13700 \\
+Data9  & 26105 & 6745  & 4948  & 7246  & 4956  \\
+Data10 & 24746 & 2671  & 4165  & 4265  & 14153 \\ \hline
+\end{tabular}
+}\end{table}
+
+
+	由表\ref{tab.5.2.11}中可以觀察到當資料符合模型前提假設，除了模型具有解釋能力以外，預測能力也較佳，其中由表\ref{tab.5.2.a2}來看又以Cumulative Logit Model表現最佳。然而在表\ref{tab.5.2.3}中可以看到B方法使用重抽樣資料去建模時次序型分類模型表現較佳的資料集會減少。
+	
+\newpage
+
+\begin{table}[H]
+\centering
+\caption{模擬資料於A方法預測狀況}
+\label{tab.5.2.11}
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \extrarowheight=5pt
+	\setlength{\tabcolsep}{5mm}{
+	\begin{tabular}{ccc}
+	\hline
+        & 名目型分類模型                   & 次序型分類模型              \\ \hline
+Dataset & 4, 10 & 1, 2, 3, 5, 6, 7, 8, 9, 10\\
+	\hline
+\end{tabular}
+    \caption{模擬資料於分類模型預測成效}\label{tab.5.2.a1}
+}\end{subtable}
+
+\hfill
+\vspace{0.5cm}
+
+\begin{subtable}[H]{.78\linewidth}
+	\footnotesize
+    \extrarowheight=5pt
+	\setlength{\tabcolsep}{5mm}{
+	\begin{tabular}{cccccc}
+	\hline
+        & Clm      & Naive & Logistic               & cratio & acat \\ \hline
+Dataset & 1, 2, 3, 5, 6, 7, 8, 9 &       & 4, 10 & 7, 8   & 3, 10   \\ \hline
+\end{tabular}
+    \caption{模擬資料於五種分類模型預測成效}\label{tab.5.2.a2}
+}\end{subtable}
+
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{模擬資料於B方法預測狀況}
+\label{tab.5.2.3}
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \extrarowheight=5pt
+	\setlength{\tabcolsep}{5mm}{
+	\begin{tabular}{ccc}
+	\hline
+        & 名目型分類模型                   & 次序型分類模型              \\ \hline
+Dataset & 1, 4, 8, 9, 10 & 2, 3, 4, 5, 6, 7\\
+	\hline
+\end{tabular}
+    \caption{模擬資料於分類模型預測成效}\label{tab.5.2.b1}
+}\end{subtable}
+
+\hfill
+\vspace{0.5cm}
+
+\begin{subtable}[H]{.78\linewidth}
+	\footnotesize
+    \extrarowheight=5pt
+	\setlength{\tabcolsep}{5mm}{
+	\begin{tabular}{cccccc}
+	\hline
+        & Clm      & Naive & Logistic               & cratio & acat \\ \hline
+Dataset & 2, 5, 6, 7, 8, 9 & 1,       & 8, 10 &  & 3, 4  \\ \hline
+\end{tabular}
+    \caption{模擬資料於五種分類模型預測成效}\label{tab.5.2.b2}
+}\end{subtable}
+
+\end{table}
+
+\newpage
+
+% BIGTABLE C
+\begin{table}[H]
+\caption{模擬資料於A方法未重抽樣建模，未重抽樣預測於五種分類模型預測結果}
+\label{table.5.2.A}
+
+
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.427(0.01)  & \cellcolor[HTML]{FFCE93}0.563(0.003) & \cellcolor[HTML]{FFCE93}0.413(0.004) \\
+Naive  & 1.428(0.01)  & 0.562(0.003) & 0.407(0.004) \\
+Logis  & 1.443(0.009) & 0.562(0.003) & 0.392(0.004) \\
+Cratio & 1.435(0.009) & 0.562(0.003) & 0.403(0.003) \\
+acat   & 1.656(0.014) & 0.553(0.002) & 0.403(0.004) \\ \hline
+\end{tabular}
+
+\caption{模擬資料1維於A方法五種模型預測結果}\label{tab.5.2.1a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                 & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.829(0.01) & \cellcolor[HTML]{FFCE93}0.656(0.002) & \cellcolor[HTML]{FFCE93}0.665(0.004) \\
+Naive  & 0.834(0.008)                        & 0.655(0.002)                         & 0.656(0.003)                         \\
+Logis  & 0.83(0.01)                          & \cellcolor[HTML]{FFCE93}0.656(0.002) & \cellcolor[HTML]{FFCE93}0.665(0.003) \\
+Cratio & 0.83(0.009)                         & \cellcolor[HTML]{FFCE93}0.656(0.002) & 0.663(0.003)                         \\
+acat   & 0.83(0.01)                          & \cellcolor[HTML]{FFCE93}0.656(0.002) & \cellcolor[HTML]{FFCE93}0.665(0.004) \\ \hline
+\end{tabular}
+
+    \caption{模擬資料2維於A方法五種模型預測結果}\label{tab.5.2.2a}
+    \vspace{0.5cm}
+}\end{subtable}
+\hfill
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.543(0.018) & \cellcolor[HTML]{FFCE93}0.833(0.001) & 0.663(0.005)                         \\
+Naive  & 1.586(0.014)                         & 0.83(0.001)                          & 0.604(0.005)                         \\
+Logis  & 1.547(0.019)                         & \cellcolor[HTML]{FFCE93}0.833(0.001) & \cellcolor[HTML]{FFCE93}0.666(0.005) \\
+Cratio & 1.551(0.019)                         & 0.832(0.001)                         & 0.647(0.006)                         \\
+acat   & \cellcolor[HTML]{FFCE93}1.543(0.019) & \cellcolor[HTML]{FFCE93}0.833(0.001) & 0.664(0.005)                         \\ \hline
+\end{tabular}
+
+\caption{模擬資料3維於A方法五種模型預測結果}\label{tab.5.2.3a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                 & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & 2.285(0.027)                        & \cellcolor[HTML]{FFCE93}0.697(0.002) & 0.705(0.003)                         \\
+Naive  & 2.432(0.025)                        & 0.692(0.001)                         & 0.688(0.004)                         \\
+Logis  & \cellcolor[HTML]{FFCE93}2.28(0.029) & \cellcolor[HTML]{FFCE93}0.697(0.002) & \cellcolor[HTML]{FFCE93}0.706(0.003) \\
+Cratio & 2.3(0.028)                          & \cellcolor[HTML]{FFCE93}0.697(0.002) & 0.703(0.004)                         \\
+acat   & 2.283(0.028)                        & \cellcolor[HTML]{FFCE93}0.697(0.002) & 0.705(0.003)                         \\ \hline
+\end{tabular}
+
+    \caption{模擬資料4維於A方法五種模型預測結果}\label{tab.5.2.4a}
+    \vspace{0.5cm}
+}\end{subtable}
+
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.048(0.011) & \cellcolor[HTML]{FFCE93}0.599(0.003) & 0.509(0.005)                         \\
+Naive  & 1.126(0.011)                         & 0.585(0.002)                         & 0.532(0.041)                         \\
+Logis  & 1.07(0.012)                          & 0.598(0.003)                         & 0.487(0.006)                         \\
+Cratio & 1.08(0.011)                          & 0.597(0.003)                         & \cellcolor[HTML]{FFCE93}0.619(0.004) \\
+acat   & 1.086(0.013)                         & 0.597(0.003)                         & \cellcolor[HTML]{FFCE93}0.617(0.005) \\ \hline
+\end{tabular}
+
+\caption{模擬資料5維於A方法五種模型預測結果}\label{tab.5.2.5a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.235(0.015) & \cellcolor[HTML]{FFCE93}0.674(0.002) & 0.447(0.003)                         \\
+Naive  & 1.77(0.019)                          & 0.651(0.002)                         & 0.489(0.005)                         \\
+Logis  & 1.279(0.016)                         & 0.673(0.002)                         & \cellcolor[HTML]{FFCE93}0.575(0.021) \\
+Cratio & 1.385(0.016)                         & 0.672(0.002)                         & 0.558(0.004)                         \\
+acat   & 1.297(0.017)                         & 0.673(0.002)                         & \cellcolor[HTML]{FFCE93}0.575(0.004) \\ \hline
+\end{tabular}
+
+    \caption{模擬資料6維於A方法五種模型預測結果}\label{tab.5.2.6a}
+    \vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                            & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.518(0.008) & \cellcolor[HTML]{FFCE93}0.73(0.003) & 0.547(0.009)                         \\
+Naive  & 0.717(0.006)                         & 0.693(0.002)                        & 0.329(0.005)                         \\
+Logis  & 0.524(0.008)                         & 0.729(0.003)                        & 0.533(0.01)                          \\
+Cratio & 0.523(0.008)                         & \cellcolor[HTML]{FFCE93}0.73(0.003) & \cellcolor[HTML]{FFCE93}0.562(0.009) \\
+acat   & 0.537(0.008)                         & 0.726(0.003)                        & 0.538(0.01)                          \\ \hline
+\end{tabular}
+
+\caption{模擬資料7維於A方法五種模型預測結果}\label{tab.5.2.7a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}2.061(0.024) & \cellcolor[HTML]{FFCE93}0.678(0.002) & 0.549(0.003)                         \\
+Naive  & 2.296(0.025)                         & 0.672(0.001)                         & 0.762(0.002)                         \\
+Logis  & 2.142(0.028)                         & 0.677(0.002)                         & 0.608(0.125)                         \\
+Cratio & 2.16(0.026)                          & \cellcolor[HTML]{FFCE93}0.677(0.001) & \cellcolor[HTML]{FFCE93}0.765(0.002) \\
+acat   & 2.141(0.028)                         & 0.677(0.002)                         & \cellcolor[HTML]{FFCE93}0.764(0.002) \\ \hline
+\end{tabular}
+
+    \caption{模擬資料8維於A方法五種模型預測結果}\label{tab.5.2.8a}
+    \vspace{0.5cm}
+}\end{subtable}
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.095(0.014) & \cellcolor[HTML]{FFCE93}0.647(0.002) & 0.525(0.004)                         \\
+Naive  & 1.6(0.019)                           & 0.612(0.002)                         & 0.564(0.006)                         \\
+Logis  & 1.162(0.017)                         & 0.645(0.002)                         & 0.5(0.016)                           \\
+Cratio & 1.212(0.019)                         & 0.643(0.002)                         & \cellcolor[HTML]{FFCE93}0.639(0.004) \\
+acat   & 1.205(0.018)                         & 0.644(0.002)                         & \cellcolor[HTML]{FFCE93}0.639(0.004) \\ \hline
+\end{tabular}
+
+\caption{模擬資料9維於A方法五種模型預測結果}\label{tab.5.2.9a}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                            & Macro-F1                             \\ \hline
+Clm    & 1.97(0.03)                           & 0.709(0.002)                        & \cellcolor[HTML]{FFCE93}0.788(0.002) \\
+Naive  & 2.113(0.029)                         & 0.703(0.002)                        & 0.784(0.002)                         \\
+Logis  & \cellcolor[HTML]{FFCE93}1.964(0.03)  & \cellcolor[HTML]{FFCE93}0.71(0.002) & \cellcolor[HTML]{FFCE93}0.788(0.002) \\
+Cratio & 1.981(0.03)                          & 0.709(0.002)                        & \cellcolor[HTML]{FFCE93}0.788(0.002) \\
+acat   & \cellcolor[HTML]{FFCE93}1.963(0.029) & \cellcolor[HTML]{FFCE93}0.71(0.002) & \cellcolor[HTML]{FFCE93}0.788(0.002) \\ \hline
+\end{tabular}
+
+    \caption{模擬資料10維於A方法五種模型預測結果}\label{tab.5.2.10a}
+    \vspace{0.5cm}
+}\end{subtable}
+\end{table}
+
+
+% BIGTABLE D
+\begin{table}[H]
+\caption{模擬資料於B方法重抽樣建模，未重抽樣預測於五種模型預測結果}
+\label{table.5.2.B}
+
+
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & 2.437(0.036)                         & 0.428(0.005)                         & 0.277(0.003)                         \\
+Naive  & \cellcolor[HTML]{FFCE93}2.225(0.153) & 0.444(0.01)                          & \cellcolor[HTML]{FFCE93}0.301(0.026) \\
+Logis  & 2.686(0.047)                         & \cellcolor[HTML]{FFCE93}0.449(0.004) & 0.27(0.002)                          \\
+Cratio & 2.315(0.035)                         & 0.46(0.005)                          & 0.283(0.003)                         \\
+acat   & 2.753(0.04)                          & 0.426(0.004)                         & 0.259(0.002)                         \\ \hline
+\end{tabular}
+
+\caption{模擬資料1維於B方法五種模型預測結果}\label{tab.5.2.1b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.359(0.165) & 0.471(0.025)                         & \cellcolor[HTML]{FFCE93}0.298(0.033) \\
+Naive  & 1.955(0.459)                         & 0.444(0.042)                         & 0.247(0.031)                         \\
+Logis  & 1.834(0.374)                         & 0.46(0.029)                          & 0.245(0.028)                         \\
+Cratio & 1.925(0.263)                         & 0.411(0.026)                         & 0.256(0.032)                         \\
+acat   & 1.686(0.202)                         & \cellcolor[HTML]{FFCE93}0.479(0.019) & 0.275(0.031)                         \\ \hline
+\end{tabular}
+
+    \caption{模擬資料2維於B方法五種模型預測結果}\label{tab.5.2.2b}
+    \vspace{0.5cm}
+}\end{subtable}
+\hfill
+
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                 & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.981(0.09) & 0.571(0.015)                         & 0.282(0.006)                         \\
+Naive  & 2.446(0.29)                         & 0.581(0.015)                         & 0.274(0.007)                         \\
+Logis  & 2.297(0.177)                        & \cellcolor[HTML]{FFCE93}0.625(0.013) & 0.288(0.005)                         \\
+Cratio & 2.36(0.103)                         & 0.506(0.018)                         & 0.261(0.006)                         \\
+acat   & 2.151(0.094)                        & 0.621(0.014)                         & \cellcolor[HTML]{FFCE93}0.289(0.005) \\ \hline
+\end{tabular}
+
+\caption{模擬資料3維於B方法五種模型預測結果}\label{tab.5.2.3b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.726(0.022) & 0.516(0.004)                         & 0.356(0.003) \\
+Naive  & 1.85(0.026)                          & 0.542(0.006)                         & 0.349(0.004)                         \\
+Logis  & 1.856(0.027)                         & \cellcolor[HTML]{FFCE93}0.562(0.004) & 0.356(0.003) \\
+Cratio & 1.934(0.024)                         & 0.482(0.005)                         & 0.34(0.003)                          \\
+acat   & 1.804(0.023)                         & 0.551(0.004)                         & \cellcolor[HTML]{FFCE93}0.36(0.003)                          \\ \hline
+\end{tabular}
+
+    \caption{模擬資料4維於B方法五種模型預測結果}\label{tab.5.2.4b}
+    \vspace{0.5cm}
+}\end{subtable}
+
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.992(0.013) & 0.483(0.003)                         & \cellcolor[HTML]{FFCE93}0.438(0.003) \\
+Naive  & 1.074(0.017)                         & 0.474(0.005)                         & 0.422(0.003)                         \\
+Logis  & 1.05(0.013)                          & \cellcolor[HTML]{FFCE93}0.484(0.004) & 0.427(0.003)                         \\
+Cratio & 1.084(0.015)                         & 0.459(0.004)                         & 0.42(0.003)                          \\
+acat   & 1.049(0.013)                         & 0.483(0.004)                         & 0.427(0.003)                         \\ \hline
+\end{tabular}
+
+\caption{模擬資料5維於B方法五種模型預測結果}\label{tab.5.2.5b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.119(0.014) & 0.536(0.005)                         & \cellcolor[HTML]{FFCE93}0.414(0.003) \\
+Naive  & 1.246(0.021)                         & 0.546(0.006)                         & 0.399(0.005)                         \\
+Logis  & 1.181(0.016)                         & \cellcolor[HTML]{FFCE93}0.561(0.004) & 0.406(0.003)                         \\
+Cratio & 1.277(0.016)                         & 0.499(0.005)                         & 0.392(0.003)                         \\
+acat   & 1.159(0.014)                         & 0.558(0.004)                         & 0.413(0.003)                         \\ \hline
+\end{tabular}
+
+    \caption{模擬資料6維於B方法五種模型預測結果}\label{tab.5.2.6b}
+    \vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.5\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}0.665(0.011) & 0.618(0.005)                         & \cellcolor[HTML]{FFCE93}0.432(0.005) \\
+Naive  & 0.805(0.025)                         & 0.61(0.006)                          & 0.399(0.006)                         \\
+Logis  & 0.698(0.015)                         & \cellcolor[HTML]{FFCE93}0.637(0.004) & 0.42(0.005)                          \\
+Cratio & 0.801(0.017)                         & 0.575(0.006)                         & 0.401(0.005)                         \\
+acat   & 0.702(0.013)                         & 0.619(0.005)                         & 0.42(0.005)                          \\ \hline
+\end{tabular}
+
+\caption{模擬資料7維於B方法五種模型預測結果}\label{tab.5.2.7b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.375(0.021) & 0.553(0.004)                         & 0.417(0.003)                         \\
+Naive  & 1.637(0.038)                         & 0.547(0.006)                         & 0.402(0.004)                         \\
+Logis  & 1.492(0.027)                         & \cellcolor[HTML]{FFCE93}0.588(0.004) & \cellcolor[HTML]{FFCE93}0.421(0.004) \\
+Cratio & 1.457(0.023)                         & 0.538(0.004)                         & 0.411(0.003)                         \\
+acat   & 1.388(0.021)                         & 0.567(0.004)                         & 0.418(0.003)                         \\ \hline
+\end{tabular}
+
+    \caption{模擬資料8維於B方法五種模型預測結果}\label{tab.5.2.8b}
+    \vspace{0.5cm}
+}\end{subtable}
+\begin{subtable}[H]{.5\textwidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                            \\ \hline
+Clm    & 0.874(0.01)                          & 0.567(0.003)                         & \cellcolor[HTML]{FFCE93}0.48(0.004) \\
+Naive  & \cellcolor[HTML]{FFCE93}0.987(0.017) & 0.562(0.004)                         & 0.461(0.004)                        \\
+Logis  & 0.909(0.011)                         & \cellcolor[HTML]{FFCE93}0.584(0.003) & 0.475(0.003)                        \\
+Cratio & 0.961(0.01)                          & 0.541(0.004)                         & 0.464(0.003)                        \\
+acat   & 0.886(0.01)                          & 0.573(0.003)                         & 0.477(0.003)                        \\ \hline
+\end{tabular}
+
+\caption{模擬資料9維於B方法五種模型預測結果}\label{tab.5.2.9b}
+\vspace{0.5cm}
+}\end{subtable}
+\hfill
+\begin{subtable}[H]{.6\linewidth}
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+\setlength{\tabcolsep}{2mm}{
+\begin{tabular}{cccc}
+\hline
+Model  & MSE                                  & Accuracy                             & Macro-F1                             \\ \hline
+Clm    & \cellcolor[HTML]{FFCE93}1.228(0.017) & 0.564(0.004)                         & 0.421(0.003)                         \\
+Naive  & 1.485(0.033)                         & 0.558(0.004)                         & 0.404(0.003)                         \\
+Logis  & 1.303(0.021)                         & \cellcolor[HTML]{FFCE93}0.604(0.003) & \cellcolor[HTML]{FFCE93}0.425(0.004) \\
+Cratio & 1.299(0.017)                         & 0.549(0.003)                         & 0.413(0.003)                         \\
+acat   & 1.235(0.018)                         & 0.587(0.003)                         & 0.428(0.003)                         \\ \hline
+\end{tabular}
+
+    \caption{模擬資料10維於B方法五種模型預測結果}\label{tab.5.2.10b}
+    \vspace{0.5cm}
+}\end{subtable}
+\end{table}
+
+
+	由表\ref{table.5.2.A}與表\ref{table.5.2.B}中我們可以觀察到重抽樣建模與未重抽樣建模兩種情況於模擬資料之下的表現，整理出表\ref{tab.5.2.4}觀察到不論是名目型分類模型或是次序型分類模型，重抽樣資料建模(B方法)時，衡量指標Accuracy與Macro-F1的表現上皆比未重抽樣資料建模(A方法)時來得差，而MSE表現上則是各有勝負，從這部份我們猜測，因為這裡的重抽樣包含到欠採樣，意味著訓練資料的減少，也代表更難訓練出一個較為合適的模型。
+	
+
+
+\begin{table}[H]
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+    \caption{模擬資料於A、B兩種抽樣方法最佳模型表現差異}\label{tab.5.2.4}
+\setlength{\tabcolsep}{3mm}{
+\begin{threeparttable}
+\begin{tabular}{cccccccccc}
+\hline
+                             & \multicolumn{3}{c}{MSE}                                              & \multicolumn{3}{c}{Accuracy}                                         & \multicolumn{3}{c}{Macro-F1}                    \\ \hline
+                             & A方法   & B方法   & \multicolumn{1}{c|}{相差}                              & A方法   & B方法   & \multicolumn{1}{c|}{相差}                              & A方法   & B方法   & 相差                              \\ \hline
+\multicolumn{1}{c|}{Data 1}  & 1.427 & 2.225 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} 55.92\%}}  & 0.563 & 0.449 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -20.25\%}} & 0.413 & 0.301 & {\color[HTML]{FE0000} -27.12\%} \\ \hline
+\multicolumn{1}{c|}{Data 2}  & 0.829 & 1.359 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} 63.93\%}}  & 0.656 & 0.479 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -26.98\%}} & 0.665 & 0.298 & {\color[HTML]{FE0000} -55.19\%} \\ \hline
+\multicolumn{1}{c|}{Data 3}  & 1.543 & 1.981 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} 28.39\%}}  & 0.833 & 0.625 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -24.97\%}} & 0.666 & 0.289 & {\color[HTML]{FE0000} -56.61\%} \\ \hline
+\multicolumn{1}{c|}{Data 4}  & 2.283 & 1.726 & \multicolumn{1}{c|}{{\color[HTML]{009901} -24.40\%}} & 0.697 & 0.562 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -19.37\%}} & 0.706 & 0.356 & {\color[HTML]{FE0000} -49.58\%} \\ \hline
+\multicolumn{1}{c|}{Data 5}  & 1.048 & 0.992 & \multicolumn{1}{c|}{{\color[HTML]{009901} -5.34\%}}  & 0.599 & 0.484 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -19.20\%}} & 0.619 & 0.438 & {\color[HTML]{FE0000} -29.24\%} \\ \hline
+\multicolumn{1}{c|}{Data 6}  & 1.235 & 1.119 & \multicolumn{1}{c|}{{\color[HTML]{009901} -9.39\%}}  & 0.674 & 0.561 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -16.77\%}} & 0.575 & 0.414 & {\color[HTML]{FE0000} -28.00\%} \\ \hline
+\multicolumn{1}{c|}{Data 7}  & 0.518 & 0.665 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} 28.38\%}}  & 0.73  & 0.637 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -12.74\%}} & 0.562 & 0.432 & {\color[HTML]{FE0000} -23.13\%} \\ \hline
+\multicolumn{1}{c|}{Data 8}  & 2.061 & 1.375 & \multicolumn{1}{c|}{{\color[HTML]{009901} -33.28\%}} & 0.678 & 0.588 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -13.27\%}} & 0.765 & 0.421 & {\color[HTML]{FE0000} -44.97\%} \\ \hline
+\multicolumn{1}{c|}{Data 9}  & 1.095 & 0.987 & \multicolumn{1}{c|}{{\color[HTML]{009901} -9.86\%}}  & 0.647 & 0.584 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -9.74\%}}  & 0.639 & 0.48  & {\color[HTML]{FE0000} -24.88\%} \\ \hline
+\multicolumn{1}{c|}{Data 10} & 1.963 & 1.228 & \multicolumn{1}{c|}{{\color[HTML]{009901} -37.44\%}} & 0.709 & 0.604 & \multicolumn{1}{c|}{{\color[HTML]{FE0000} -14.81\%}} & 0.788 & 0.425 & {\color[HTML]{FE0000} -46.07\%} \\ \hline
+\end{tabular}
+
+\begin{tablenotes}  
+        \item[1.] :  紅色代表A方法優於B方法，綠色反之
+        \item[2.] :  相差的計算方法為: (B方法 - A方法) / A方法
+\end{tablenotes}
+\end{threeparttable}
+}\end{table}
+
+
+\section{文字資料應用}
+	
+	本節我們使用Yahoo國片電影評論資料與Kaggle平台上所提供的Trip Advisor Hotel Reviews資料，透過文字預處理與詞嵌入的方法處理成模型能輸入的資料樣態後檢視模型於文字資料的表現，文字預處理的部分在第4.2章節有介紹。
+	
+	在上述兩節中，我們觀察到在符合模型假設之下，次序型資料中使用次序型分類模型之表現優於名目型分類模型，且未經過重抽樣建模的方法所配適出來的模型優於以低採樣方料重抽樣後的模型，因此在本章節我們將使用資料未經過重抽樣的方法來建模。在文字資料中訓練集與測試集與前面相同皆為7:3，且兩者皆依各類別等比例抽樣。
+	
+	在此我們將觀察小維度至大維度時模型預測結果的差異，考慮以下幾種不同的詞嵌入方法來衡量模型表現，其中CBOW與Skip-gram法皆使用負採樣(negative sampling)為5，令D表示維度，W(Window size)表示CBOW與Skip-gram法中獲取前後文單詞的數量，如下所示共有21組:
+	
+	
+\begin{enumerate}[1.]
+\setlength{\itemsep}{-10pt}
+\item TF-IDF法 D = 50, D = 100, D = 150, D = 200
+\item CBOW法 W = 3 ; D = 50, D = 100, D = 150, D = 200
+\item CBOW法 W = 5 ; D = 50, D = 100, D = 150, D = 200
+\item Skip-gram法 W = 3 ; D = 50, D = 100, D = 150, D = 200
+\item Skip-gram法 W = 5 ; D = 50, D = 100, D = 150, D = 200
+\item wiki法 D = 300
+
+\end{enumerate}
+	
+	
+% 中文
+\subsection{中文文字-Yahoo電影評論}
+	
+	在此章節將以中文文字資料-Yahoo電影評論比較三種次序型分類模型：Cumulative Logit Model、Continuation-Ratio Logit Model、Adjacent-Category Logit Model，與兩種名目型分類模型：Naïve Bayes、多元邏輯斯模型於不同詞嵌入方法的表現，衡量指標包括MSE、Accuracy與Macro-F1。如圖4.1所示，本資料即之評分絕大多數為5分，極度不平衡。
+	
+\subsubsection{CBOW法於五種模型表現}
+
+	首先，在MSE、Accuracy與Macro-F1指標上，同個分類模型在W=3和5兩種狀況下的表現相近，且於不同維度有著相似的趨勢，以圖\ref{pic.5.3.1-1}為例，我們可以看到CBOW法套用於五種模型時，次序型分類模型在Macro-F1的表現最佳，名目型分類模型上表現較差，而在次序型分類模型上又以維度D=100時表現最好，在維度D=50與200時表現略差。	
+	
+\newpage
+
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir CBOW_F1.jpeg}
+    \caption{CBOW法各模型於不同維度下Macro-F1表現-中文資料}
+    \label{pic.5.3.1-1}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}
+	
+
+	再來以Accuracy指標來看CBOW法，各模型在W=3和5兩種狀況下，於不同維度趨勢依舊相近，由圖\ref{pic.5.3.1-2}可以觀察到名目型分類模型Naïve Bayes的表現最差，其餘四種模型表現相當一致。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir CBOW_ACC.jpeg}
+    \caption{CBOW法各模型於不同維度下Accuracy表現-中文資料}
+    \label{pic.5.3.1-2}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+
+	而從MSE指標來看，如圖\ref{pic.5.3.1-3}依舊是名目型分類模型Naïve Bayes的表現最差，其餘四種分類模型表現相當一致，而多元邏輯斯模型的表現在MSE指標上是表現得較好的，以維度D=100表現最佳。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir CBOW_MSE.jpeg}
+    \caption{CBOW法各模型於不同維度下MSE表現-中文資料}
+    \label{pic.5.3.1-3}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	從上面我們觀察到，雖然多元邏輯斯模型在Accuracy有著較好且接近次序型分類模型的表現，但在Macro-F1上卻遠遠低於次序型分類模型，由此可見多元邏輯斯模型在本資料集為不平衡資料的情況下，相較於次序型分類模型容易傾向預測資料筆數較多的一類，因此在Accuracy上表現較佳，Macro-F1表現較差。
+	
+	
+\subsubsection{Skip-gram法於五種模型表現}
+
+	首先如同CBOW法，在Skip-gram法中，在MSE、Accuracy與Macro-F1各指標上，同個模型在W=3和5兩種狀況下，於不同維度有著相似的趨勢，以圖\ref{pic.5.3.2-1}為例，我們可以看到Skip-gram法套用於五種模型時，次序型分類模型在Macro-F1的表現最佳，名目型分類模型上表現較差，而在次序型分類模型上又以維度D=50與100時表現較好，在維度D=200時表現略差。
+	
+\begin{figure}[h]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir SKIP_F1.jpeg}
+    \caption{Skip-gram法各模型於不同維度下Macro-F1表現-中文資料}
+    \label{pic.5.3.2-1}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}
+	
+	再來以Accuracy指標來看Skip-gram法時，各模型在W=3和5兩種狀況下於不同維度趨勢依舊相近，由圖\ref{pic.5.3.2-2}可以觀察到名目型分類模型Naïve Bayes的表現最差，其餘四種模型表現相當一致。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir SKIP_ACC.jpeg}
+    \caption{Skip-gram法各模型於不同維度下Accuracy表現-中文資料}
+    \label{pic.5.3.2-2}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	而從MSE指標來看，圖\ref{pic.5.3.2-3}顯示Naïve Bayes於W=3時的表現最差，多元邏輯斯模型則是在W=5且D=100時表現最佳，值得一提的是次序型分類模型與多元邏輯斯模型在D=100時表現都較好，但隨著維度越大，MSE也放大許多，甚至高過Naïve Bayes。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.4]{\imgdir SKIP_MSE.jpeg}
+    \caption{Skip-gram法各模型於不同維度下MSE表現-中文資料}
+    \label{pic.5.3.2-3}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	從上面我們觀察到Skip-gram與CBOW法的結果相似，多元邏輯斯模型在本資料集為不平衡資料的情況下，預測結果相較於次序型分類模型容易傾向資料筆數較多的一類，因此在Accuracy上表現較佳，Macro-F1表現較差，而Skip-gram法與CBOW法模型大多在維度D=100時表現較其它維度好。
+
+
+\subsubsection{TF-IDF法於五種模型表現}
+
+	如圖\ref{pic.5.3.3-1}所示，我們可以看到TF-IDF法套用於五種模型時Macro-F1的表現上，次序型分類模型的表現都最佳，名目型分類模型上表現較差，而在次序型分類模型上又以維度D=150與200時表現最好，在維度D=50時表現最不佳，三種模型在不同維度時的趨勢相似。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.4]{\imgdir TFIDF_F1.jpeg}
+    \caption{TF-IDF法各模型於不同維度下Macro-F1表現-中文資料}
+    \label{pic.5.3.3-1}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}
+	
+	
+\newpage
+
+
+	再來以Accuracy與MSE指標來看TF-IDF法，由圖\ref{pic.5.3.3-2}與圖5.9可以觀察到名目型分類模型Naïve Bayes的表現最差，其餘四種模型表現相近，且在維度D=150與200時表現較佳。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir TFIDF_ACC.jpeg}
+    \caption{TF-IDF法各模型於不同維度下Accuracy表現-中文資料}
+    \label{pic.5.3.3-2}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir TFIDF_MSE.jpeg}
+    \caption{TF-IDF法各模型於不同維度下MSE表現-中文資料}
+    \label{pic.5.3.3-3}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	從上面我們可以得到一個結論，與CBOW法和Skip-gram法發生的狀況一樣，多元邏輯斯模型在本資料集為不平衡資料的情況下，預測結果相較於次序型分類模型容易傾向資料筆數較多的一邊，因此在Accuracy上表現較佳，Macro-F1表現較差，而與Skip-gram法和CBOW法模型大多在低維度D=100時表現較好之下，TF-IDF法反而是在維度越高D=150與200時表現較好。
+	
+\subsubsection{wiki法於五種模型表現}
+	
+	wiki法維度皆為300維，由表\ref{tab.5.3.4}中可以看到wiki法在次序型分類模型有著較好的表現，但相較CBOW法、Skip-gram法和TF-IDF法並不會特別出色，因本研究使用的多元邏輯斯模型無法於高維度執行，故未列出該模型於wiki法的成效。
+	
+\begin{table}[H]
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+    \caption{Wiki法於五種分類模型之比較-中文資料}\label{tab.5.3.4}
+\setlength{\tabcolsep}{5mm}{
+\begin{tabular}{cccc}
+\hline
+       & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm.   & 2.454(0.135) & 0.737(0.009) & 0.71(0.015)  \\ 
+cratio & 2.484(0.153) & 0.735(0.01)  & 0.706(0.016) \\ 
+acat   & 2.479(0.152) & 0.735(0.01)  & 0.71(0.017)  \\ 
+Naïve  & 4.403(0.35)  & 0.267(0.03)  & 0.194(0.027) \\ \hline
+\end{tabular}
+\begin{tablenotes} 
+\scriptsize 
+        \item[1.] \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;nnet套件中多元邏輯斯模型(nnet:: multinom)在維度300無法執行
+       
+\end{tablenotes}
+}\end{table}
+	
+	
+\newpage
+
+\subsubsection{綜合評估}
+
+	下面我們將列出模型綜合比較表，可以觀察到這筆資料集在使用skip-gram時表現較好，且Adjacent-Category Logit Model搭配以Skip-gram詞嵌入法當W=5且維度D=50時有最佳表現。
+
+\begin{table}[H]
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+    \caption{模型綜合比較表-中文資料}\label{tab.5.3.5}
+\setlength{\tabcolsep}{5mm}{
+\begin{tabular}{ccccc}
+\hline
+\textbf{模型}               & \textbf{文字特徵}       & \textbf{MSE} & \textbf{Accuracy} & \textbf{Macro-F1} \\ \hline
+\multirow{3}{*}{Clm}      & CBOW W=5 D=100      & 2.014(0.129) & 0.761(0.008)      & 0.74(0.014)       \\
+                          & Skip-gram W=5 D=100 & 1.76(0.144)  & 0.776(0.009)      & 0.771(0.016)      \\
+                          & TF-IDF D=200        & 2.481(0.131) & 0.734(0.008)      & 0.689(0.015)      \\ \cdashline{1-5}[0.8pt/4pt]
+\multirow{3}{*}{Cratio}   & CBOW W=5 D=150      & 2.107(0.149) & 0.756(0.009)      & 0.734(0.017)      \\
+                          & Skip-gram W=5 D=100 & 1.78(0.142)  & 0.775(0.008)      & 0.766(0.015)      \\
+                          & TF-IDF D=200        & 2.497(0.133) & 0.733(0.008)      & 0.684(0.016)      \\
+\cdashline{1-5}[0.8pt/4pt]
+\multirow{3}{*}{acat}     & CBOW W=5 D=100      & 2.01(0.131)  & 0.761(0.008)      & 0.743(0.014)      \\
+                          & Skip-gram W=5 D=50  & 1.726(0.154) & 0.779(0.009)      & 0.778(0.018)      \\
+                          & TF-IDF D=150        & 2.404(0.147) & 0.737(0.009)      & 0.691(0.018)      \\
+\cdashline{1-5}[0.8pt/4pt]
+\multirow{3}{*}{Naïve}    & CBOW W=5 D=50       & 2.577(0.245) & 0.441(0.02)       & 0.268(0.018)      \\
+                          & Skip-gram W=5 D=100 & 1.695(0.141) & 0.54(0.019)       & 0.337(0.018)      \\
+                          & TF-IDF D=50         & 4.677(0.442) & 0.257(0.055)      & 0.173(0.031)      \\
+\cdashline{1-5}[0.8pt/4pt]
+\multirow{3}{*}{Logistic} & CBOW W=3 D=50       & 2.114(0.124) & 0.748(0.008)      & 0.391(0.051)      \\
+                          & Skip-gram W=5 D=150 & 1.635(0.106) & 0.754(0.013)      & 0.393(0.026)      \\
+                          & TF-IDF D=150        & 2.305(0.126) & 0.714(0.011)      & 0.37(0.021)       \\ \hline
+\end{tabular}
+}\end{table}
+
+
+	在本資料集中我們可以得到以下幾點結論:
+	
+\begin{enumerate}[1.]
+\setlength{\itemsep}{-10pt}
+\item \text{不論是在CBOW法或是Skip-gram法中，W=3或5對結果影響不大。}
+\item \text{整體而言次序型分類模型較名目型分類模型表現較佳}
+\item \text{整體而言Skip-gram法最佳，CBOW法與wiki法次之，最後是TF-IDF法}
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 英文
+\subsection{英文文字-Trip Advisor Hotel Reviews}
+	
+	在此章節將以英文文字資料-Trip Advisor Hotel Reviews展示三種次序型分類模型：Cumulative Logit Model、Continuation-Ratio Logit Model、Adjacent-Category Logit Model，與兩種名目型分類模型：Naïve Bayes、多元邏輯斯模型於不同詞嵌入方法的表現，衡量指標包括MSE、Accuracy與Macro-F1。如圖4.２所示，本資料即之評分絕大多數為5分，極度不平衡。
+	
+\subsubsection{CBOW法於五種模型表現}
+
+	首先，在MSE、Accuracy與Macro-F1指標上，同個模型在W=3或5兩種狀況下於不同維度有著相似的趨勢，以圖\ref{pic.5.3.6-1}為例，我們看到CBOW法套用於五種模型時，多元邏輯斯模型在Macro-F1上表現較次序型分類模型佳，且隨著維度增加，Macro-F1也隨之上升，反倒是過去一直表現不錯的Adjacent-Category Logit Model在維度D=150時有個向下V型跌落，與其他模型於維度D=150時有著最佳表現相反。
+		
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir CBOW_F11.jpeg}
+    \caption{CBOW法各模型於不同維度下Macro-F1表現-英文資料}
+    \label{pic.5.3.6-1}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}
+	
+	再來以Accuracy指標來看CBOW法時，各模型在W=3和5兩種狀況下於不同維度趨勢依舊相近，由圖\ref{pic.5.3.6-2}可以觀察到多元邏輯斯模型的表現最佳，次序型分類模型其次，再來是Naïve Bayes，其中除了Naïve Bayes在維度D=150時表現最差，其餘模型皆在該維度有著最好的表現。
+	
+	然而這五種模型的Accuracy大概介於0.49至0.62之間，差距並不會到非常大，且各模型在W=5時Accuracy皆比W=3時佳。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir CBOW_ACC1.jpeg}
+    \caption{CBOW法各模型於不同維度下Accuracy表現-英文資料}
+    \label{pic.5.3.6-2}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	而從MSE指標來看，如圖\ref{pic.5.3.6-3}依舊是Naïve Bayes的表現最差，其次為次序型分類模型，多元邏輯斯模型的表現在MSE指標上是表現得較好的，以維度D=100表現最佳，而這邊也能看出各模型在W=5時表現較W=3時好。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir CBOW_MSE1.jpeg}
+    \caption{CBOW法各模型於不同維度下MSE表現-英文資料}
+    \label{pic.5.3.6-3}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	從上面我們可以得到一個結論，多元邏輯斯模型在CBOW法中最佳、最穩定且在維度D=150時有最好的表現；而各模型在W=5時的表現都比W=3時好。
+	
+	
+\subsubsection{Skip-gram法於五種模型表現}
+
+	在Skip-gram法中，在Macro-F1指標上，Adjacent-Category Logit Model在維度D=100與150時的表現相較維度D=50與200時突然下降，其餘則與在CBOW法中相似，以多元邏輯斯模型表現最佳。
+		
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.4]{\imgdir SKIP_F11.jpeg}
+    \caption{Skip-gram法各模型於不同維度下Macro-F1表現-英文資料}
+    \label{pic.5.3.7-1}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}
+	
+	Skip-gram法中Accuracy與MSE指標的表現與CBOW法相似，以多元邏輯斯模型表現最佳，其次為次序型分類模型，最後是Naïve Bayes。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.4]{\imgdir SKIP_ACC1.jpeg}
+    \caption{Skip-gram法各模型於不同維度下Accuracy表現-英文資料}
+    \label{pic.5.3.7-2}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.4]{\imgdir SKIP_MSE1.jpeg}
+    \caption{Skip-gram法各模型於不同維度下MSE表現-英文資料}
+    \label{pic.5.3.7-3}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	從上面我們可以得到一個結論，與CBOW法發生的狀況一樣，多元邏輯斯模型在本資料集接表現的最佳，而過去表現的較好的Adjacent-Category Logit Model在各維度有著不穩定的狀況；且各模型在W=5時表現皆比W=3時好。
+
+
+
+
+\subsubsection{TF-IDF法於五種模型表現}
+
+	如圖\ref{pic.5.3.8-1}所示，與前面其他詞嵌入方法的結果不同，在這邊各模型在Macro-F1於各維度表現並不一致，可以看到次序型分類模型沒有一個固定的趨勢，在各維度上的表現難以捉摸；而名目型分類模型皆隨著維度增加表現也隨之上升。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.4]{\imgdir TFIDF_F11.jpeg}
+    \caption{TF-IDF法各模型於不同維度下Macro-F1表現-英文資料}
+    \label{pic.5.3.8-1}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}
+	
+	再來以Accuracy指標來看TF-IDF法，由圖\ref{pic.5.3.8-2}可以觀察到多元邏輯斯模型表現最佳，其次為次序型分類模型，Naïve Bayes的表現最差，這五種模型皆隨著維度增加，Accuracy表現也隨之提升，當維度D=200時次序型分類模型的正確率已經接近多元邏輯斯模型維度D=150時的正確率。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir TFIDF_ACC1.jpeg}
+    \caption{TF-IDF法各模型於不同維度下Accuracy表現-英文資料}
+    \label{pic.5.3.8-2}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	而從MSE指標來看，如圖\ref{pic.5.3.8-3}顯示Naïve Bayes的表現最差，其餘模型表現相近，且這個五種模型皆隨維度增加，MSE也隨之降低。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.5]{\imgdir TFIDF_MSE1.jpeg}
+    \caption{TF-IDF法各模型於不同維度下MSE表現-英文資料}
+    \label{pic.5.3.8-3}
+    \caption*{\footnotesize{Note: nnet套件中多元邏輯斯模型(nnet:: multinom)在維度200無法執行}}
+\end{figure}	
+	
+	從上面我們可以得到一個結論，與CBOW法和Skip-gram法發生的狀況一樣，多元邏輯斯模型的表現最佳，次序型分類模型在Macro-F1上於各維度表現不穩定，並無法判斷出該模型最適合的維度，相較於CBOW法和Skip-gram法皆在維度D=150時表現較其他維度好，TF-IDF法則是在維度D=200時有較好的表現。
+	
+\subsubsection{wiki法於五種模型表現}
+
+	wiki法維度皆為300維，由表\ref{tab.5.3.9}中可以看到wiki法在Naïve Bayes有著較好的表現，但相較CBOW法、Skip-gram法和TF-IDF法並不會特別出色，因本研究使用的多元邏輯斯模型無法於高維度執行，故未列出該模型於wiki法的成效。
+		
+\begin{table}[H]
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+    \caption{Wiki法於五種分類模型之比較-英文資料}\label{tab.5.3.9}
+\setlength{\tabcolsep}{5mm}{
+\begin{tabular}{cccc}
+\hline
+       & MSE          & Accuracy     & Macro-F1     \\ \hline
+Clm.   & 0.7(0.011)   & 0.568(0.005) & 0.45(0.006)  \\ 
+cratio & 0.712(0.01)  & 0.567(0.005) & 0.443(0.006) \\ 
+acat   & 0.698(0.012) & 0.57(0.005)  & 0.439(0.006)  \\ 
+Naïve  & 1.286(0.03)  & 0.494(0.006) & 0.453(0.007) \\ \hline
+\end{tabular}
+\begin{tablenotes}
+  \scriptsize
+        \item[1.] \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;nnet套件中多元邏輯斯模型(nnet:: multinom)在維度300無法執行
+       
+\end{tablenotes}
+}\end{table}
+
+\newpage
+
+\subsubsection{綜合評估}
+
+
+	下面我們將列出模型綜合比較表，可以觀察到這筆資料集在多元邏輯斯模型搭配以CBOW詞嵌入法當W=5且維度D為150時有最佳表現。
+
+\begin{table}[H]
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+    \caption{模型綜合比較表}\label{tab.5.3.5}
+\setlength{\tabcolsep}{5mm}{
+\begin{tabular}{ccccc}
+\hline
+\textbf{模型}               & \textbf{文字特徵}       & \textbf{MSE} & \textbf{Accuracy} & \textbf{Macro-F1} \\ \hline
+\multirow{3}{*}{Clm}      & CBOW W=5 D=150      & 0.699(0.013) & 0.568(0.005)      & 0.449(0.006)      \\
+                          & Skip-gram W=5 D=150 & 0.658(0.013) & 0.572(0.004)      & 0.466(0.006)      \\
+                          & TF-IDF D=200        & 0.742(0.012) & 0.561(0.004)      & 0.436(0.007)      \\ \cdashline{1-5}[0.8pt/4pt]
+\multirow{3}{*}{Cratio}   & CBOW W=5 D=150      & 0.71(0.012)  & 0.567(0.004)      & 0.443(0.005)      \\
+                          & Skip-gram W=5 D=100 & 0.672(0.011) & 0.572(0.004)      & 0.461(0.006)      \\
+                          & TF-IDF D=200        & 0.735(0.013) & 0.564(0.004)      & 0.507(0.043)      \\\cdashline{1-5}[0.8pt/4pt]
+\multirow{3}{*}{acat}     & CBOW W=3 D=100      & 0.755(0.013) & 0.558(0.004)      & 0.521(0.008)      \\
+                          & Skip-gram W=5 D=50  & 0.739(0.013) & 0.562(0.004)      & 0.518(0.029)      \\
+                          & TF-IDF D=200        & 0.735(0.013) & 0.564(0.004)      & 0.507(0.043)      \\\cdashline{1-5}[0.8pt/4pt]
+\multirow{3}{*}{Naïve Bayes}    & CBOW W=5 D=50       & 1.105(0.028) & 0.514(0.006)      & 0.46(0.007)       \\
+                          & Skip-gram W=5 D=200 & 1.104(0.029) & 0.515(0.006)      & 0.46(0.007)       \\
+                          & TF-IDF D=200        & 1.262(0.027) & 0.497(0.005)      & 0.453(0.006)      \\\cdashline{1-5}[0.8pt/4pt]
+\multirow{3}{*}{Logistic} & CBOW W=5 D=150      & 0.617(0.014) & 0.619(0.005)      & 0.545(0.007)      \\
+                          & Skip-gram W=5 D=150 & 0.614(0.014) & 0.615(0.005)      & 0.538(0.007)      \\
+                          & TF-IDF D=150        & 1.015(0.027) & 0.57(0.005)       & 0.469(0.007)      \\ \hline
+\end{tabular}
+}\end{table}
+
+
+	在本資料集中我們可以得到以下幾點結論:
+	
+\begin{enumerate}[1.]
+\setlength{\itemsep}{-10pt}
+\item \text{不論是在CBOW法或是Skip-gram法中，W=3或5對結果影響不大}
+\item \text{整體而言多元邏輯斯模型表現最佳，次序型分類模型次之，最後是Naïve Bayes}
+\item \text{詞嵌入方法於各模型表現有好有壞，無法判斷出最佳的詞向量方法}
+\item \text{次序型分類模型在TF-IDF法時於各維度有著不穩定表現，而Adjacent-Category Logit }\\	\text{Model於另外兩種詞嵌入方法表現也較不穩定}
+\end{enumerate}
+
+
+
+	
+\newpage
+%\end{document}
+
+
+
+
+
+
+
+
+
+

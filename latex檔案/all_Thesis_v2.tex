@@ -1,0 +1,94 @@
+\input{preamble}
+\usepackage{wallpaper}                                          % 使用浮水印
+\CenterWallPaper{0.6}{images/ntpu.eps}                           % 浮水印圖檔	
+%--- 製作封面頁 ----------------------------------
+\begin{document}
+
+\fontsize{12}{22pt}\selectfont
+\thispagestyle{empty}
+\vspace*{1cm}
+ \begin{center}
+    \huge 國~立~政~治~大~學~統~計~系~研~究~所 \\ 碩~士~學~位~論~文
+ \end{center}
+\vspace*{2cm}
+
+\vspace*{3cm}
+ \begin{center}
+    \LARGE 名目型與次序型資料之分類模型比較及其在網路文本評論之應用
+ \end{center}
+
+ \begin{center}    			   
+      \Large A comparison of nominal and ordinal classification models with application to online reviews
+ \end{center}
+\vspace*{6cm}
+ \begin{center}
+    \LARGE 指導教授：翁久幸~~博士 \\
+ \end{center}
+\begin{center}
+    \LARGE 研究生：柳瑞俞~~撰\\
+\vspace*{2cm}
+    \LARGE 中華民國~一一$\bigcirc$~年~七~月
+\end{center}
+
+\newpage
+\cleardoublepage
+
+\setcounter{tocdepth}{2}		% 目錄層次
+\pagenumbering{roman}			% 羅馬文頁碼
+%\include{Thanks}   		% 謝誌
+\include{Abstract}   	% 中英文摘要
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% 製作目錄 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\cleardoublepage		
+\fontsize{12}{22pt}\selectfont 	% 字型大小與行距視使用的字型調整
+\fancyfoot[C]{\thepage}
+
+
+\tableofcontents
+\newpage
+\renewcommand{\numberline}[1]{\loflabel~#1\hspace*{1em}}% 圖目錄出現 圖 x.x 的「圖」字
+\listoffigures %圖目錄
+\newpage
+\renewcommand{\numberline}[1]{\lotlabel~#1\hspace*{1em}}% 表目錄出現 表 x.x 的「表」字
+\listoftables % 表目錄
+\newpage
+\thispagestyle{empty}
+
+%%%%%%%%%%%%%%%%%%%%%%%%% 正文開始 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fontsize{12}{22pt}\selectfont
+\cleardoublepage
+\ifodd \count0 \else \thispagestyle{empty} \mbox{} \clearpage \fi % 如果是偶數頁就呈現空白頁
+\pagenumbering{arabic}          % 重新開始計算頁碼-格式阿拉伯文
+\setcounter{page}{1}
+\include{ch1_SpecificObjective}
+\include{ch2_LiteratureReview}
+\include{ch3_ResearchMethods}
+\include{ch4_datasetintroduction}
+\include{ch5_SimulationAnalysis}
+\include{ch6_ConclusionAndFutureStudy}
+
+\nocite{*}               % 秀出 .bib 文獻檔中的所有文獻，若拿掉這個命令，只秀出文章所用的文獻
+%%%%%%%%%%% Reference %%%%%%%%%%%%%%%%%%%%%%
+%\ifodd\count0 \else \thispagestyle{plain}\mbox{}\clearpage \fi
+
+\addcontentsline{toc}{chapter}{參考文獻}   % 在目錄中添加"參考文獻"的
+\include{References}
+
+%\bibliographystyle{abbrv}                 % 指定style檔
+%\bibliography{myRef}                      % 用的.bib檔名稱
+
+%%%%%%%%%%%%%%%%%%% Appendix %%%%%%%%%%%%%%%%%%%%%%%%
+
+%\appendix                        
+%\addcontentsline{toc}{chapter}{附錄A~~~~分析方法I下之通過率}% 將"附錄"的頁碼加到目錄
+%\include{appendixA}        % 附錄1
+%\addcontentsline{toc}{chapter}{附錄B~~~~分析方法II下之通過率}% 將"附錄"的頁碼加到目錄
+%\include{appendixB}        % 附錄2
+%\addcontentsline{toc}{chapter}{附錄C~~~~分析方法III下之通過率}% 將"附錄"的頁碼加到目錄
+%\include{appendixC}        % 附錄3
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}

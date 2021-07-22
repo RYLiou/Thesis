@@ -1,0 +1,300 @@
+%\notinput{preamble1}
+%\usepackage{wallpaper}                                          % 使用浮水印
+%\CenterWallPaper{0.6}{images/ntpu.eps}                           % 浮水印圖檔
+%\begin{document}
+%\fontsize{12}{22pt}\selectfont
+\cleardoublepage
+\thispagestyle{empty}
+\setlength{\parindent}{2em}
+
+
+\chapter{資料集介紹}
+
+	此章節將介紹本次實驗所用的資料集與資料前處理，包含一般常見的數值型態和類別型態的資料共13筆，其目標變數經處理後皆為次序型，此外我們還使用文字資料，包含使用爬蟲程式抓取Yahoo電影上的中文文字資料以及Kaggle平台上Trip Advisor Hotel Reviews和Amazon Fine Food Reviews的英文文字資料。
+	
+\section{數值與類別型態資料}
+
+	這13筆資料取自於UCI網站、Kaggle平台、網路上所提供的Ordinal Regression Benchmark Data與R\,Package上的資料，目標變數包含類別型與連續型，其中類別型的資料共有8筆且皆為次序型，其餘5筆資料我們參考Chu與Keerthi（2005）的研究中將目標變數為連續型的以等頻(Equal Frequency)的方式轉換為次序型，而因為有些資料集目標變數存在不平衡的問題，在這邊我們會分為沒有對目標變數做重抽樣與對目標變數做重抽樣兩部分做討論。
+	
+
+\subsection{全資料集總表}
+
+	表\ref{tab.4.1.1.1}為13個資料集的基本性質，其中資料集7、8、9、10與13使用Chu與Keerthi（2005）等頻方法將目標變數由連續型轉為次序型，資料集最少有506筆最多為165474筆，變數個數則介於5到14。
+
+\begin{table}[H]
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+    \caption{Data Statistics}\label{tab.4.1.1.1}
+\setlength{\tabcolsep}{3mm}{
+\begin{tabular}{ccccccc}
+\hline
+ ID& Data & Data Type & Dependent Varible & Task & Instances & Attributes \\ \hline
+ 1& CMC & Multivariate & Wife education &  Classification & 1473 & 10 \\ 
+ 2& CMC & Multivariate & Husband education &  Classification & 1473 & 10 \\ 
+ 3& CMC & Multivariate & Contraceptive &  Classification & 1473 & 10 \\ 
+ 4& soup & Multivariate & SURNESS &  Classification & 1847 & 7 \\ 
+ 5& affairs & Multivariate & rating &  Classification & 601 & 10 \\ 
+ 6& car  & Multivariate & acceptability &  Classification & 1728 & 7 \\ 
+ 7& e-shop  & Multivariate & order &  Regression & 165474 &11 \\ 
+ 8& estate  & Multivariate & CRIM &  Regression & 506 & 14 \\ 
+ 9& student.score  & Multivariate & score &  Regression & 1000 & 5 \\ 
+ 10& housing   & Multivariate & RH &  Regression & 20433 & 10 \\ 
+ 11& abalone  & Multivariate & Rings &  Classification & 4177 & 8 \\ 
+ 12& stock  & Multivariate & reward &  Classification & 950 & 10 \\ 
+ 13& fish.toxicity  & Multivariate & LC50 &  Regression & 908 & 7 \\ \hline
+\end{tabular}}
+\end{table}
+
+	由於上述13筆資料集的目標變數大多皆為不平衡資料，我們將會在建立模型時對原始資料進行重抽樣(Resampling)。傳統的演算法在不平衡資料中具有較大的侷限性，例如若模型以全局性能做為學習過程指標，像是以正確率作為指標則會使預測結果大多傾向多數類別；樣本數過少的類別將會被視為離群值，從而降低該類別被預測率，但有可能離群值才是重點對象等等。
+	
+	常見的資料不平衡處理方法有:(1)重抽樣(Resampling)、(2)\,SMOTE與(3)\,Informed Undersampling。(1)的方法主要是將樣本數較多的類別依比例少抽，稱為欠採樣(Undersampling)，較少的類別採抽後放回的方式依比例多抽，稱為過採樣(Oversampling)，(2)與(3)的方法主要是在過採樣與欠採樣的過程加上演算法使其抽到有對資料本身做一點小變化，以產生不完全相同的資料，在這邊我們僅使用重抽樣。
+	
+	因此我們會針對每個資料集分為以下兩種形式作探討:
+\begin{enumerate}[A.]
+\setlength{\itemsep}{-10pt}
+\item 未重抽樣資料建模，未重抽樣資料預測
+\item 重抽樣資料建模，未重抽樣資料預測
+\end{enumerate}
+
+	我們會將所有資料集切分70\%與30\%做為訓練資料集與測試資料集，在切分訓練資料集時會依照目標變數各類別在資料集中佔的比例做等比例抽樣，意即若資料集之目標變數共有4類且各佔10\%、20\%、35\%與35\%且資料筆數為1000筆，那麼在切分後的訓練資料集目標變數各類別筆數分別為1000*10\%*70\%、1000*20\%*70\%、1000*35\%*70\%與1000*35\%*70\%，本研究中重抽樣會將各類別抽至與資料筆數最少的那類相同，為了預防有資料集資料筆數最少的類別筆數太少，若最少的類別筆數少於35筆時，會以倒數第二少的類別筆數為基準，將筆數較多的類別做欠採樣，筆數較少的類別做過採樣，表\ref{tab.4.1.1.2a}與\ref{tab.4.1.1.2b}為未做重抽樣與重抽樣下，各個資料集於訓練集、測試集與總資料的資料筆數。
+	
+	
+\begin{table}[H]
+	\footnotesize
+    \centering
+    \extrarowheight=3pt
+    \caption{各資料集樣態 - A形式}\label{tab.4.1.1.2a}
+\setlength{\tabcolsep}{1mm}{	
+\begin{tabular}{lccccccccccccc}
+             & \multicolumn{13}{c}{A    未重抽樣資料建模，未重抽樣資料預測}                                                                            \\ \cline{2-14} 
+             & Data 1 & Data 2 & Data 3 & Data 4 & Data 5 & Data 6 & Data 7 & Data 8 & Data 9 & Data 10 & Data 11 & Data 12 & Data 13 \\ \hline
+Training Set & 1029   & 1029   & 1030   & 1290   & 419  & 1208   & 115830 & 352    & 697    & 14301    & 2920     & 662      & 633     \\
+Testing Set  & 444    & 444    & 443    & 557    & 182  & 520    & 49644  & 154    & 303    & 6132    & 1257     & 288       & 275     \\
+Total Set    & 1473   & 1473   & 1473   & 1847   & 601  & 1728   & 165474 & 506    & 1000   & 20433    & 4177     & 950      & 908   \\\hline 
+\end{tabular}
+}\end{table}	
+
+
+\begin{table}[H]
+	\footnotesize
+    \centering
+    \extrarowheight=3pt
+    \caption{各資料集樣態 - B形式}\label{tab.4.1.1.2b}
+\setlength{\tabcolsep}{1mm}{	
+\begin{tabular}{lccccccccccccc}
+             & \multicolumn{13}{c}{B    重抽樣資料建模，未重抽樣資料預測}                                                                             \\ \cline{2-14} 
+             & Data 1 & Data 2 & Data 3 & Data 4 & Data 5 & Data 6 & Data 7 & Data 8 & Data 9 & Data 10 & Data 11 & Data 12 & Data 13 \\ \hline
+Training Set & 424    & 495    & 699    & 480    & 230   & 192    & 84090  & 350    & 675    & 14270    & 2184     & 550     & 630     \\
+Testing Set  & 444    & 444    & 443    & 557    & 182  & 520    & 49644  & 154    & 303    & 6132    & 1257     & 288     & 275     \\
+Total Set    & 868    & 939    & 1142   & 1037   & 412  & 712    & 133734 & 504    & 978    & 20402    & 3441     & 838     & 905   \\\hline 
+\end{tabular}
+}\end{table}
+
+
+\subsection{各資料集簡介}
+	
+	資料集1、2與3取自UCI\;Data\;CMA，此數據集是1987年印尼避孕普及調查的其中一份資料集，這裡我們將目標變數分別設為wife\;ducation, husband\;education與Contraceptive，前兩者皆為妻子與丈夫的教育程度分級，由低至高分共為4個等級，而第三個是使用的避孕方法，包含不使用、短期使用與長期使用共三類。
+	
+	資料集4取自R 裡頭的ordinal\;package，由聯合利華研究公司提供，目標變數為SURNESS，依照測試者對於湯品的評分高低共分為六類。資料集6與7則是取自UCI\;Data，前者來自一個以汽車評估數據庫的簡單的分層決策模型，比如整體價格包含買入價與維修保養價格，技術特標包含舒適度與安全性等，並以整體可接受性作為我們的目標變數，共分為四等級；後者來自2008年前五個月，孕婦服裝在線商店的點擊流信息的相關資料，包含產品類別、價格等資訊，我們以ORDER點擊時間順序作為目標變數，因該變數為連續型，依照前面所敘述，我們以等頻方式切為五個等級。
+
+	資料集5、8、9與10取自Kaggle平台的資料，資料集5為婚外情資料，目標變數是婚外情發生的頻率，共分為五個等級；資料集8為美國波士頓郊區房地產數據，以鎮上人均犯罪率做為目標變數，因該變數為連續型變數，我們以等頻方式切分低至高五個等級；資料集9為學生考試成績資料，透過家庭背景、考試準備等變數去了解對於學生成績的影響，考試成績共有數學、閱讀與寫作三者，我們將其取平均後以等頻方式切分為五個等級；資料集10則是1990年美國人口普查時所蒐集的加州房屋價格資料，我們以房屋價格中位數為目標變數以等頻方式切分為五個等級。
+	
+	資料集11、12取自網路上所提供的Ordinal Regression Benchmark Data，分別為預測鮑魚的環與股市趨勢，這兩組資料本身就已經先幫我們將連續型目標變數切分好等級，前者共切分為8個等級，後者切分為5個等級。資料集13為QSAR魚類毒性資料集，以各種毒物分子成份預測目標變數，該目標變數為連續型，我們以等頻方式切分為五個等級。
+	
+	表\ref{tab.4.1.1.3a}與\ref{tab.4.1.1.3b}為兩種形式下，各個資料集的目標變數於訓練集、測試集與總資料中各類別的分佈狀況。
+	
+\newpage
+	
+\begin{table}[H]
+	\scriptsize
+    \centering
+    \extrarowheight=5pt
+    \caption{各資料集目標變數樣態 - A形式}\label{tab.4.1.1.3a}
+\setlength{\tabcolsep}{5mm}{
+ \begin{tabular}{cccccccccc}
+                         & \multicolumn{9}{c}{Class  of  Y}                                     \\ \cline{3-10} 
+                         &       & 1     & 2     & 3     & 4     & 5     & 6    & 7    & 8    \\ \hline
+\multirow{3}{*}{Data 1}  & Train & 106   & 233   & 287   & 403   &       &      &      &      \\
+                         & Test  & 46    & 101   & 123   & 174   &       &      &      &      \\
+                         & Total & 152   & 334   & 410   & 577   &       &      &      &      \\ \hline
+\multirow{3}{*}{Data 2}  & Train & 30    & 124   & 246   & 629   &       &      &      &      \\
+                         & Test  & 14    & 54    & 106   & 270   &       &      &      &      \\
+                         & Total & 44    & 178   & 352   & 899   &       &      &      &      \\ \hline
+\multirow{3}{*}{Data 3}  & Train & 440   & 233   & 357   &       &       &      &      &      \\
+                         & Test  & 189   & 100   & 154   &       &       &      &      &      \\
+                         & Total & 629   & 333   & 511   &       &       &      &      &      \\ \hline
+\multirow{3}{*}{Data 4}  & Train & 159   & 182   & 80    & 68    & 193   & 608  &      &      \\
+                         & Test  & 69    & 78    & 35    & 30    & 84    & 261  &      &      \\
+                         & Total & 228   & 260   & 115   & 98    & 277   & 869  &      &      \\ \hline
+\multirow{3}{*}{Data 5}  & Train & 11    & 46    & 65    & 135   & 162   &      & 	   & 	 \\
+                         & Test  & 5     & 20    & 28    & 59  	 & 70    &      &      &   \\
+                         & Total & 16    & 66    & 93    & 194   & 232   &      &      &  \\ \hline
+\multirow{3}{*}{Data 6}  & Train & 847   & 268   & 48    & 45    &       &      &      &      \\
+                         & Test  & 363   & 116   & 21    & 20    &       &      &      &      \\
+                         & Total & 1210  & 384   & 69    & 65    &       &      &      &      \\ \hline
+\multirow{3}{*}{Data 7}  & Train & 16818 & 24253 & 23422 & 26651 & 24686 &      &      &      \\
+                         & Test  & 7208  & 10395 & 10039 & 11422 & 10580 &      &      &      \\
+                         & Total & 24026 & 34648 & 33461 & 38073 & 35266 &      &      &      \\ \hline
+\multirow{3}{*}{Data 8}  & Train & 70    & 70    & 70    & 70    & 72    &      &      &      \\
+                         & Test  & 31    & 30    & 31    & 31    & 31    &      &      &      \\
+                         & Total & 101   & 100   & 101   & 101   & 103   &      &      &      \\ \hline
+\multirow{3}{*}{Data 9}  & Train & 143   & 135   & 138   & 143   & 138   &      &      &      \\
+                         & Test  & 62    & 59    & 60    & 62    & 60    &      &      &      \\
+                         & Total & 205   & 194   & 198   & 205   & 198   &      &      &      \\ \hline
+\multirow{3}{*}{Data 10} & Train & 2860  & 2854  & 2866  & 2858  & 2863  &      &      &      \\
+                         & Test  & 1226  & 1224  & 1229  & 1225  & 1228  &      &      &      \\
+                         & Total & 4086  & 4078  & 4095  & 4083  & 4091  &      &      &      \\ \hline
+\multirow{3}{*}{Data 11} & Train & 313   & 273   & 397   & 482   & 443   & 340  & 329  & 343  \\
+                         & Test  & 135   & 118   & 171   & 207   & 191   & 147  & 141  & 147  \\
+                         & Total & 448   & 391   & 568   & 689   & 634   & 487  & 470  & 490  \\ \hline
+\multirow{3}{*}{Data 12} & Train & 110   & 158   & 190   & 144   & 60    &      &      &      \\
+                         & Test  & 48    & 69    & 82    & 63    & 26    &      &      &      \\
+                         & Total & 158   & 227   & 272   & 207   & 86    &      &      &      \\ \hline
+\multirow{3}{*}{Data 13} & Train & 127   & 126   & 126   & 127   & 127   &      &      &      \\
+                         & Test  & 55    & 55    & 55    & 55    & 55    &      &      &      \\
+                         & Total & 182   & 181   & 181   & 182   & 182   &      &      &      \\ \hline
+\end{tabular}
+}\end{table}
+
+\newpage
+
+\begin{table}[H]
+	\scriptsize
+    \centering
+    \extrarowheight=5pt
+    \caption{各資料集目標變數樣態 - B形式}\label{tab.4.1.1.3b}
+\setlength{\tabcolsep}{5mm}{
+\begin{tabular}{cccccccccc}
+                         & \multicolumn{9}{c}{Class of Y}                                     \\ \cline{3-10} 
+                         &       & 1     & 2     & 3     & 4     & 5     & 6    & 7    & 8    \\ \hline
+\multirow{3}{*}{Data 1}  & Train & 106   & 106   & 106   & 106   &       &      &      &      \\
+                         & Test  & 46    & 101   & 123   & 174   &       &      &      &      \\
+                         & Total & 152   & 207   & 229   & 280   &       &      &      &      \\ \hline
+\multirow{3}{*}{Data 2}  & Train & 124   & 124   & 123   & 124   &       &      &      &      \\
+                         & Test  & 14    & 54    & 106   & 270   &       &      &      &      \\
+                         & Total & 138   & 178   & 229   & 394   &       &      &      &      \\ \hline
+\multirow{3}{*}{Data 3}  & Train & 233   & 233   & 233   &       &       &      &      &      \\
+                         & Test  & 189   & 100   & 154   &       &       &      &      &      \\
+                         & Total & 422   & 333   & 387   &       &       &      &      &      \\ \hline
+\multirow{3}{*}{Data 4}  & Train & 80    & 80    & 80    & 80    & 80    & 80   &      &      \\
+                         & Test  & 69    & 78    & 35    & 30    & 84    & 261  &      &      \\
+                         & Total & 149   & 158   & 115   & 110   & 164   & 341  &      &      \\ \hline
+\multirow{3}{*}{Data 5}  & Train & 46    & 46    & 46    & 46    & 46    &      &      &   \\
+                         & Test  & 5     & 20    & 28    & 59    & 70    &      &      &   \\
+                         & Total & 51    & 66    & 74    & 105   & 116   &      &      &  \\ \hline
+\multirow{3}{*}{Data 6}  & Train & 48    & 48    & 48    & 48    &       &      &      &      \\
+                         & Test  & 363   & 116   & 21    & 20    &       &      &      &      \\
+                         & Total & 411   & 164   & 69    & 68    &       &      &      &      \\ \hline
+\multirow{3}{*}{Data 7}  & Train & 16818 & 16818 & 16818 & 16818 & 16818 &      &      &      \\
+                         & Test  & 7208  & 10395 & 10039 & 11422 & 10580 &      &      &      \\
+                         & Total & 24026 & 27213 & 26857 & 28240 & 27398 &      &      &      \\ \hline
+\multirow{3}{*}{Data 8}  & Train & 70    & 70    & 70    & 70    & 70    &      &      &      \\
+                         & Test  & 31    & 30    & 31    & 31    & 31    &      &      &      \\
+                         & Total & 101   & 100   & 101   & 101   & 101   &      &      &      \\ \hline
+\multirow{3}{*}{Data 9}  & Train & 135   & 135   & 135   & 135   & 135   &      &      &      \\
+                         & Test  & 62    & 59    & 60    & 62    & 60    &      &      &      \\
+                         & Total & 197   & 194   & 195   & 197   & 195   &      &      &      \\ \hline
+\multirow{3}{*}{Data 10} & Train & 2854  & 2854  & 2854  & 2854  & 2854  &      &      &      \\
+                         & Test  & 1226  & 1224  & 1229  & 1225  & 1228  &      &      &      \\
+                         & Total & 4080  & 4078  & 4083  & 4079  & 4082  &      &      &      \\ \hline
+\multirow{3}{*}{Data 11} & Train & 273   & 273   & 273   & 273   & 273   &  273 &  273 &  273 \\
+                         & Test  & 135   & 118   & 171   & 207   & 191   &  147 &  141 &  147 \\
+                         & Total & 408   & 391   & 444   & 480   & 464   &  420 &  414 &  420 \\ \hline
+\multirow{3}{*}{Data 12} & Train & 110   & 110   & 110   & 110   & 110   &      &      &      \\
+                         & Test  & 48    & 69    & 82    & 63    & 26    &      &      &      \\
+                         & Total & 158   & 179   & 192   & 173   & 136   &      &      &      \\ \hline
+\multirow{3}{*}{Data 13} & Train & 126   & 126   & 126   & 126   & 126   &      &      &      \\
+                         & Test  & 55    & 55    & 55    & 55    & 55    &      &      &      \\
+                         & Total & 181   & 181   & 181   & 181   & 181   &      &      &      \\ \hline
+\end{tabular}
+}\end{table}
+ 
+
+	
+\section{文字型態資料}
+	
+	除了一般數值與類別型態的資料，我們也將實驗文字資料於目標變數為次序型和名目型的比較何者較佳，下面我們將會介紹這兩筆文字形態資料，並執行資料前處理，文字種類包含中文與英文，Yahoo電影評論、Kaggle平台上提供的Trip Advisor Hotel Reviews。
+
+
+\subsection{中文文字資料 - Yahoo電影評論}
+
+	我們使用Python進行網路爬蟲，鎖定Yahoo電影網站上2020年上映的國片，時間為該片上映後至2021/02/28，擷取每部電影網友所留的評論與該評論所對應的評分，評分介於1至5分，合計共36部電影，評分愈高代表愈滿意。
+	
+	為了排除評論數少量的電影，使電影更具有代表性，我們挑選每部電影評論數10則以上作為有效電影，其餘則捨棄，詳細電影名稱如表\ref{tab.4.2.1.1}，合計共24部有效電影，而評論方面，我們扣除沒有文字的評論後的有效評論共2885則。
+	
+\begin{table}[H]
+	\small
+    \centering
+    \extrarowheight=5pt
+    \caption{有效與無效電影名稱}\label{tab.4.2.1.1}
+\setlength{\tabcolsep}{3mm}{
+\begin{tabular}{c|c|c}
+     & 有效電影                                                                                                                                                                                                                      & 無效電影                                                                                                                    \\ \hline
+電影名稱 & \begin{tabular}[c]{@{}l@{}}同學麥娜絲, 驚夢49天, 逃出立法院, \\ 打噴嚏, 馗降:粽邪2,破處, \\ 怪胎, 初心, 刻在你心底的名字, \\ 可不可以，你也剛好喜歡,\\ 我消失的情人節, 海霧, 你的情歌, \\ 女鬼橋, 腿,老娘就要這麼活, \\ 孤味, 親愛的房客, 無聲 , \\ 哈囉少女,杏林醫院, 戀愛iNG, \\ 親愛的殺手, 十二夜2:回到第零天\end{tabular} & \begin{tabular}[c]{@{}l@{}}迷走廣州, 媽!我阿榮啦, 野雀之師, \\ 菠蘿蜜, 千年一問, 狂飆一夢, \\ 蚵豐村, 惡之畫, 戀愛好好說, \\ 逆者, 阿紫, 我的兒子是死刑犯\end{tabular}
+\end{tabular}
+}\end{table}
+
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.8]{\imgdir yahoo_rating.png}
+    \caption{篩選有效評論前後評分的分佈對照}
+    \label{grap.4.2.1}
+\end{figure}
+
+	針對文本資料前處理的部分，首先，將所有評論刪去表情符號(Emoji)、標點符號和換行的符號，再來我們對每一則評論使用Jieba斷詞，最後我們刪除繁體中文常見停用字的部分，例如「的」和「了」等詞語對整篇文本來說太常出現且沒有太大的解釋意義，這些停用字若不刪除可能會造成後續做詞向量時效果變差，以上為文本資料前處理的部分，效果如表\ref{tab.4.2.1.2}。
+	
+\begin{table}[H]
+	\small
+    \centering
+    \extrarowheight=5pt
+    \caption{中文文本處理前後對照}\label{tab.4.2.1.2}
+\setlength{\tabcolsep}{3mm}{
+\begin{tabular}{c|c}
+         & 第2881則評論                                                                \\ \hline
+文本處理前 & \begin{tabular}[c]{@{}l@{}}真的很棒!影片在談論的議題。\\ 許多人的努力，非常值得一看。\end{tabular} \\ \hline
+文本處理後 & {[}'真的', '很棒', '影片', '談論', '議題', '許多人', '努力', '值得一看'{]}                
+\end{tabular}
+}\end{table}
+
+\subsection{英文文字資料 - Trip Advisor Hotel Reviews}
+
+	此資料集為Kaggle平台上所提供的Trip Advisor Hotel Reviews，於Tripadvisor網站上抓取的20491則旅店公開評論所組合而成的資料集，資料期間不詳，評分介於1至5分，評論中皆沒有出現缺失值，故有效評論共20491則。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=1.1]{\imgdir tripadvisor_rating.png}
+    \caption{Trip Advisor評分分佈}
+    \label{grap4.2.2}
+\end{figure}
+	
+	針對文本資料前處理的部分，首先使用Python軟體中「nltk」套件裡的「tokenize」將所有評論做斷詞，接下來將英文停用字，例如「so」與「too」等單字，最後我們將所有評論的表情符號(Emoji)、標點符號等非英文與數字的字刪掉。效果如表\ref{tab.4.2.2.1}
+
+\begin{table}[H]
+	\small
+    \centering
+    \extrarowheight=5pt
+    \caption{英文文本處理前後對照(Trip Advisor)}\label{tab.4.2.2.1}
+\setlength{\tabcolsep}{3mm}{
+\begin{tabular}{c|c}
+      & 第480則評論                                                                                                                                                            \\ \hline
+文本處理前 & beware beware leave vehicle, took advantage park ride unfortunately vehicle broken,                                                                                \\ \hline
+文本處理後 & \begin{tabular}[c]{@{}l@{}}{[}'beware', 'beware', 'leave', 'vehicle', 'took', 'advantage', \\     \,\,\,\,\,\,\,    'park', 'ride', 'unfortunately', 'vehicle', 'broken'{]}\end{tabular}
+
+\end{tabular}
+}\end{table}
+
+
+
+\newpage
+%\end{document}
+
+
+
+
+
+
+
+
+
+

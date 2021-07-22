@@ -1,0 +1,86 @@
+%\documentclass[12pt]{article}
+%\usepackage{fancyhdr}
+%\usepackage{indentfirst}
+%
+%\begin{document}
+%\fontsize{12}{20pt}\selectfont
+
+%\fancyhf{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%% 謝辭 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\cleardoublepage
+%\fontsize{12}{18pt}\selectfont
+
+\setlength{\parindent}{2em}
+\thispagestyle{empty}
+
+\vspace*{1cm}
+
+\begin{center}
+{\Large \bf 致謝}\\[20pt]     
+\end{center}
+
+
+	時光飛逝，一轉眼兩年在政大的求學階段即將結束，回想起自己讀研究所的這兩年，覺得自己非常的幸運，遇到了一群很好的同學與教授，首先要感謝指導教授\;翁久幸\;老師的指導，一開始給我許多空間提出自己的想法，在討論的過程指點出我的問題並給予我建議，讓我的研究一步一步有了更明確的方向，老師在我的實驗過程與整個論文邏輯上都給了我極大的幫助，也非常感謝老師在我低潮的時候給予我很多鼓勵，不僅僅只是在論文上的幫助。感謝系上給予我幫助過的每位教授，學生畢業後不會忘記老師們給過的恩惠。
+	
+	感謝在這兩年遇到的同學們，與你們一起待在研究室的日子非常開心，不論是大家一起討論報告、做作業，或是一起玩遊戲放鬆，都替我研究所階段增添不少色彩。也很感謝這兩年幫助我的朋友們，在我低潮的時候一句暖心的問候給我的幫助都非常大，謝謝大家的互相扶持。
+
+	謝謝我的家人，在我求學階段不曾給過我壓力，提供一個良好的環境讓我無後顧之憂的唸書。回想起自己讀研究所的動機一路到研究所畢業，至今還是覺得不可思議，我真的非常幸運才能夠順利的一路到這，謝謝這一路上遇到的大家。
+
+
+\vspace*{2cm}
+
+
+\begin{flushright} 
+{柳瑞俞\\ 國立政治大學統計學系\\ July 2021\\}
+\end{flushright} 
+
+\vspace*{1cm}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%% 摘要 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage 
+\cleardoublepage 
+%\fontsize{12}{18pt}\selectfont  
+\setlength{\parindent}{2em} 
+\thispagestyle{empty}  
+\vspace*{1cm}  
+
+\begin{center} 
+{\Large \bf 摘要}\\[20pt]      
+\end{center}
+
+   	隨著資訊科技的蓬勃發展，機器學習的技術越來越被大眾所使用，然而現今面對次序型的資料型態多半直接使用名目型分類模型而不是使用能夠正確考慮資料本身大小關係的次序型分類模型，McCullagh（1980）提出次序型目標變數的邏輯斯模型之推廣，稱為次序邏輯斯模型(Ordered Logit Model)，本研究使用三種次序邏輯斯模型做為次序型分類模型，在名目型分類模型的部分使用樸素貝葉斯(Naïve Bayes)與多元邏輯斯模型，用來預測13組目標變數為次序型的資料集，並以正確率(Accuracy)、Macro-F1與均方誤差(MSE)做為衡量指標，結果發現只有其中六組資料集在次序型分類模型表現較好，進而我們發現這六組資料集中較多變數符合次序邏輯斯模型的「比例賠率假設(Proportional odds assumption)」，接著我們使用統計資料模擬的方法，驗證確實在符合模型假設之下的資料，使用次序型分類模型獲得較名目型分類模型佳的預測結果。
+   	   	
+   	最後我們將次序型資料的問題延伸至現今流行的文字分類議題，電影與Google評論等都會有一般民眾的留言與評論等級，通常分為1到5分，我們使用Word2Vec、TF-IDF與Fasttext的詞嵌入(Word Embedding)方式將文字資料轉為模型可以代入的向量型態，結果顯示中文評論使用次序型分類模型成效較佳，英文評論使用名目型分類模型較佳，詞嵌入方法也會影響預測結果，考慮越多周遭字詞的Word2Vec方法成效越好，TF-IDF法表現最差，但Word2Vec訓練方式較久，若有時間上的考量可以使用網路上使用Fasttext訓練好的Wiki Pretrain詞向量也有不差的成效。
+   	
+   	
+ 	
+
+\vspace*{1cm}
+\noindent {\scshape 關鍵詞}: 次序邏輯斯模型、多元邏輯斯模型、Word2Vec、TF-IDF、FastText
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%% ABSTRACT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage 
+\cleardoublepage 
+%\fontsize{12}{18pt}\selectfont  
+\setlength{\parindent}{2em} 
+\thispagestyle{empty}  
+\vspace*{1cm} 
+\begin{center} 
+{\Large \bf Abstract}\\[20pt]      
+\end{center}
+
+
+	With the development of information technology, machine learning techniques are increasingly being used by the public. However, nowadays, when facing ordinal data, most of them use the nominal classification model instead of the ordinal classification that can correctly consider the rank relationship of the data. McCullagh (1980) proposed an extension of the logistic model of ordered target variables, called the ordered logit model. This study uses three ordered logit models as the ordinal classification model. Part of the nominal classification models uses Naïve Bayes and multinomial logit model to predict 13 sets of target variables as ordinal data, and uses Accuracy, Macro-F1 and Mean Square Error (MSE) As a measurement, it turns out that only six datasets perform better in the ordinal classification model. Then we found that more variables in these six datasets conform to the "Proportional odds assumption" of the ordered logistic model. Then we use statistical data simulation methods to verify that the data is indeed in line with the model assumptions, and use the ordinal classification model to obtain better prediction results than the nominal classification model.
+	
+    Finally, we extend the problem of ordinal data to the text classification issues. Movies and Google reviews will have public comments and ratings. They are usually divided into 1 to 5 points. The word embedding method we use Word2Vec, TF-IDF and FastText to convert the text data into a vector type that the model can use. The results show that the ordinal classification model for Chinese reviews is better , and the nominal classification model for English reviews is better. The word embedding method will also affect the prediction. As a result, the Word2Vec method that considers more surrounding words the better, the TF-IDF method performs the worst, but the training time of Word2Vec is longer, if you have time considerations, you can use the Wiki Pretrain word vector trained on the Internet using Fasttext, and it will have not bad results.
+
+%\vspace*{1cm}
+\noindent {\scshape KEY WORDS}: Ordered Logit Model、Multinomial Logit Model、Word2Vec、TF-IDF、FastText
+
+%\end{document}
+
+

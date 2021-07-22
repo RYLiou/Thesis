@@ -1,0 +1,479 @@
+%\notinput{preamble1}
+%\usepackage{wallpaper}                                          % 使用浮水印
+%\CenterWallPaper{0.6}{images/ntpu.eps}                           % 浮水印圖檔
+%\begin{document}
+%\fontsize{12}{22pt}\selectfont
+\cleardoublepage
+\thispagestyle{empty}
+\setlength{\parindent}{2em}
+\chapter{研究方法}
+	本章節分為四個小節，第一節先介紹衡量模型的指標，透過這三種指標可以從不同的角度去檢視模型預測結果的好壞，第二節介紹三種次序邏輯斯模型(Ordered Logit Model)和兩種名目型分類模型的理論與算法，比較當目標變數為次序型時使用次序型模型去預測和將目標變數視為名目型而使用名目型分類模型去預測的差異，第三節介紹比例賠率假設(Proportional odds assumption)的檢定方法與本研究中模擬資料生成的方法，最後將介紹四種用於文字資料應用時的詞嵌入方法。
+	
+\section{衡量指標}
+	評斷一個模型的配適狀況有多種指標，以下我們選擇三項指標作為評斷模型預測結果的指標，分別為正確率(Accuracy)、Macro-F1與均方誤差(MSE)，正確率用來計算預測正確的比率，Macro-F1會平衡考慮到召回率(Recall)與準確率(Precision)的狀況，均方誤差則可以讓我們看出預測值與實際值差異的大小，因為次序型資料本身具有大小關係，均方誤差能表現出此涵義。
+
+\subsubsection{正確率}
+	
+	我們將以正確率指標來判斷在多分類的情況中，預測結果與實際值相符的狀況，其計算公式如式\ref{eq.1.1.1}與\ref{eq.1.1.2}，檢視每筆預測值是否與實際值相同，若相同則代表預測正確，反之預測錯誤則不列入計算。
+
+\begin{equation}\label{eq.1.1.1}
+\text{I} = \left\{
+\begin{aligned}
+\text{1}\;\;\; , \;\;\;Predict = Truth \\
+\text{0}\;\;\; , \;\;\;Predict \neq Truth
+\end{aligned}
+\right.
+\end{equation}
+
+\begin{equation}\label{eq.1.1.2}
+\text{Accuracy} = \frac{\sum_{i=1}^{n}I_i}{n} \;\;\;;\;\;\;  i=1,...,n
+\end{equation}
+
+\subsubsection{Macro-F1}
+
+	F1-Score是透過召回率與準確率計算，以下我們將以圖\ref{grap.3.1.1}混淆矩陣來說明各項公式計算方式，其中召回率與準確率計算公式如式\ref{eq.1.2.1}。
+	
+	\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.7]{\imgdir confusion_matrix.png}
+    \caption{混淆矩陣 Confusion Matrix}
+    \label{grap.3.1.1}
+    
+\end{figure}
+\begin{equation}\label{eq.1.2.1}
+\begin{aligned}
+&\text{Precision} = \frac{TP}{TP+FP}  \\
+&\text{Recall} = \frac{TP}{TP+FN}
+\end{aligned}
+\end{equation}
+
+	而F1-Score計算公式如式\ref{eq.1.2.2}
+\begin{equation}\label{eq.1.2.2}
+	F1 = \frac{2*Precision*Recall}{Precision+Recall} = \frac{2*TP}{2*TP+FP+FN}
+\end{equation}
+
+	而在多分類狀況中，每個類別都能計算出各自的F1-Score，Burst與Opitz（2019）指出Macro-F1有兩種不同計算方式，分別為Averaged-F1和F1 of averages:，在此我們選用作者結論所說較為穩健的F1 of averages來計算，其公式如式\ref{eq.1.2.3}。
+
+\begin{equation}\label{eq.1.2.3}
+Macro-F1 =\frac{1}{m}\sum_{i=1}^{m} F1_i \;\;\;\; ; i=1,...,m\;\;\;\;\text{m為類別數}
+\end{equation}
+	
+	然而有時候會遇到某類別完全沒有被預測出來的情況，此時準確率分母為零將無法計算，在計算Macro-F1時會出現問題，在此若遇到某類別準確率無法計算的狀況發生時，我們將此類別略過，用其餘類別的F1-Score計算整體Macro-F1。
+
+
+\subsubsection{均方誤差 MSE}
+
+	均方誤差一般用於數值型的資料，一般來說次序型的資料不適用均方誤差，參考Rennie, 與Srebro（2005）使用到平均絕對誤差(MAE)，在此我們也考慮均方誤差，均方誤差可以提供另一層涵義，如分數有1到5分，若實際分數為1分時預測成2分和5分雖然都預測錯誤，但因次序型資料本身具有大小關係，預測成2分會比預測成5分更接近實際分數，其公式如式\ref{eq.1.3.1}。
+	
+\begin{equation}\label{eq.1.3.1}
+\text{MSE}=\frac{1}{n}\sum_{i=1}^{n}(truth_i-predict_i)^2
+\end{equation}
+	
+	
+\section{分類模型}
+	
+	本章節將會介紹三種常見的次序型分類模型，分別為Cumulative Logit Model、Continuation-Ratio Logit Model與Adjacent-Category Logit Model，以及兩種名目型分類模型，分別為樸素貝葉斯 Naïve Bayes與多元邏輯斯模型 Multinomial Logistic Model。
+	
+\subsection{Cumulative Logit Model}
+
+	令$Y_i$表示次序型隨機變數觀察值，每個觀察值都會有其對應的第j個類別，其中j = 1,...,\;J且j $\geq $ 2。
+	
+\begin{equation}
+\label{eq.3-2-1.1}
+\begin{aligned}
+	\gamma_{ij} = F(\eta_{ij})\;,\;\; \eta_{ij} = \theta_j - x^{T}_i\beta \;,\;\; i = 1,...,n\;,\;\; j=1,...,J-1 
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\label{eq.3-2-1.2}
+\begin{aligned}
+	\gamma_{ij} = P(Y_i\leq j) = \pi_{i1} + ... + \pi_{ij}\;\; \text{with} \;\; \sum_{j=1}^{J} \pi_{ij} = 1
+\end{aligned}
+\end{equation}
+	
+	此模型公式如式\ref{eq.3-2-1.1}與\ref{eq.3-2-1.2}，$\eta_{ij}$代表線性預測值、$\beta$代表斜率參數，而$F^{-1}$是鏈結函數(Link Function)，式\ref{eq.3-2-1.2}是累積機率，$\theta_j$為非遞減之閾值，$\nonumber - \infty \equiv \theta_0 \leq  ... \leq  \theta_J \equiv \infty$。
+	
+
+	常見的鏈結函數有 logit、probit、log-log與cauchit，其中最常使用的為logit，對應到邏輯斯模型(見章節3.2.5)，而在本研究中的Cumulative Logit Model選擇以logit函數做為鏈結函數，如下式\ref{eq.3-2-1.3}。
+	
+\begin{equation}
+\label{eq.3-2-1.3}
+\begin{aligned}
+	logit(\gamma_{ij}) =log \frac{P(Y_i\leq j)}{1-P(Y_i\leq j)} = log \frac{\pi_{i, 1}+..+\pi_{i, j}}{\pi_{i, j+1}+...+\pi_{i, J}}
+\end{aligned}
+\end{equation}
+
+	
+	次序型分類模型通常有「比例賠率假設(Proportional odds assumption)」，關於此假設的檢定將在3.3.1章節說明，它的意思是任何解釋變量的影響在不同的閾值上都是一致的，無論閾值如何，解釋變量對機率都有相同的影響，在此模型假設下，每個閾值處都有各自的截距項，但只有一個勝算比(Odds Ratio)影響各個解釋變量，是較為簡約且容易解釋的模型，如式\ref{eq.3-2-1.5}。
+
+
+\begin{equation}
+\label{eq.3-2-1.5}
+	logit(\gamma_{ij}) = \beta_{0j} + \beta^{'}X \;\;\;\;\;;\;\;\; j = 1,...,J-1
+\end{equation}
+
+
+\subsection{Continuation-Ratio Logit Model}
+
+	Continuation-Ratio Logit Model為Cumulative Logit Model的變形兩者在基本概念上相似，Continuation-Ratio Logit Model有兩種形式，一種是每個類別相較於高類別的log odds如式\ref{eq.3-2-2.1}，另一種則是每個類別相較於較低類別的log odds如式\ref{eq.3-2-2.2}。
+
+\begin{equation}
+\label{eq.3-2-2.1}
+	log(\frac{\pi_{j}}{\pi_{j+1} + ... + \pi_{J}}) \;\;\;\;;\;\;\; j = 1 ,..., J - 1
+\end{equation}
+
+\begin{equation}
+\label{eq.3-2-2.2}
+	log(\frac{\pi_{j+1}}{\pi_{1} + ... + \pi_{j}}) \;\;\;\;;\;\;\; j = 1 ,..., J - 1
+\end{equation}
+
+	當反應變數的次序類別代表各個階段的發展時，這種序列過程使用第一種形式效果較佳，每個類別都必須通過較低的階段才能進入較高的階段，例如接受特定醫療時間，小於1年、介於1\textasciitilde 3年、介於3\textasciitilde 5年與大於5年後的存活時間，以及教育程度小學、國中、高中、大學以上等，在與更高水平比較後捨棄給定水平的結果；反之若反應變數的次序類別反過來時，使用第二種形式的效果會較佳。
+
+	這樣的Continuation-Ratio Logit Model是基於條件之下的logit機率如下式\ref{eq.3-2-2.3}，而在比例賠率假設(Proportional odds assumption)的前提假設之下，我們可以得到一個更為簡約且容易解釋的Continuation-Ratio Logit Model模型如下式\ref{eq.3-2-2.4}。
+	
+\begin{equation}
+\label{eq.3-2-2.3}
+	\omega_j = P(Y_i = j | Y_i \geq j) = \frac{\pi_j}{\pi_{j+1} + ... + \pi_{J}} \;\;\;\;;\;\;\; j = 1 ,..., J - 1
+\end{equation}
+
+\begin{equation}
+\label{eq.3-2-2.4}
+	logit(\omega_j(x)) =  \beta_{0j} + \beta^{'}X \;\;\;\;\;;\;\;\; j = 1,...,J-1
+\end{equation}
+	
+	
+\subsection{Adjacent-Category Logit Model}
+
+	Adjacent-Category Logit Model為Cumulative Logit Model的變形，兩者在基本概念上相似，其特點在於他是使用相鄰類別做log odds的比較，如式\ref{eq.3-2-3.1}。
+
+\begin{equation}
+\label{eq.3-2-3.1}
+	logit[P(Y_i = j | Y_i= j\;\;or\;\;Y_i = j + 1)] = log\frac{\pi_j}{\pi_{j+1}} \;\;\;\;;\;\;\; j = 1 ,..., J - 1
+\end{equation}
+
+	若符合比例賠率假設可以得到一個更為簡約且容易解釋的模型如式\ref{eq.3-2-3.2}。
+	
+\begin{equation}
+\label{eq.3-2-3.2}
+	log\frac{\pi_j}{\pi_{j+1}} = \beta_{0j} + \beta^{'}X \;\;\;\;;\;\;\; j = 1 ,..., J - 1
+\end{equation}	
+	
+
+	當Adjacent-Category Logit Model以同個k為基準類別時表示如式\ref{eq.3-2-3.4}。在這種情況下若將反應變數當作名目尺度來處理，意即不考慮目標變數次序性，則可以將General Adjacent-Category Logit Model表示為Baseline-Category Logit Models，即為多元邏輯斯模型(Multinomial Logistic Model)，將於3.2.6節介紹，式\ref{eq.3-2-3.3}為該模型公式。
+	
+\begin{equation}
+\label{eq.3-2-3.4}
+log\frac{\pi_1}{\pi_k},\;log\frac{\pi_2}{\pi_k},\;...\;,\;log\frac{\pi_j-1}{\pi_k}
+\end{equation}	
+	
+\begin{equation}
+\label{eq.3-2-3.3}
+	log\frac{\pi_j}{\pi_{k}} = \beta_{0j} + \beta^{'}_jX \;\;\;\;;\;\;\; j = 1 ,..., J - 1
+\end{equation}		
+	
+	
+\subsection{樸素貝葉斯 Naïve Bayes}
+
+	樸素貝葉斯(Naïve Bayes)是一種運用貝氏定理(Bayes Theorem)最大化後驗機率的簡單分類器，經常被用於文字分類，令X代表所有自變數$X_i$的序列，y為目標變數，在計算條件機率$P(X|y)$時，若假設在給定y之下，變數與變數之間獨立，可以得到條件機率的計算方式如下式\ref{eq.3-2-4.1}，相較於$P(X_1,X_2,...,X_n|y)$，$P(X_i|y)$更為容易計算。
+
+\begin{equation}
+\label{eq.3-2-4.1}
+\begin{aligned}
+	P(X|y) &= P(x_1,x_2,x_3,...,x_n|y) \\&= P(x_1|y)P(x_2|y)P(x_3|y)...P(x_n|y) \\&= \prod_{i=1}^{n}P(x_i|y)
+\end{aligned}
+\end{equation}
+
+	隨後我們便可計算各類別最大化後驗機率，並以此做為目標變數Y 所屬類別的判斷依據，如下式\ref{eq.3-2-4.2}，此分類器相較於其他 SVM、Random Forest等分類器，優點為計算時間快。
+	
+\begin{equation}
+\label{eq.3-2-4.2}
+\begin{aligned}
+	&P(y|X) = P(y)\prod_{i=1}^{m}\frac{P(x_i|y)}{P(x_i)} \\&y^{'} = \arg \max\limits_{y\in C}P(y)\prod_{i=1}^{m}\frac{P(x_i|y)}{P(x_i)} \\& \;\;\;= \arg \max\limits_{y\in C}\{logP(y) + \sum_{i=1}^{m}logP(x_i|y)\}
+\end{aligned}
+\end{equation}
+
+\subsection{多元邏輯斯模型 Multinomial Logistic Model}
+
+	邏輯斯模型(Logistic Model)是用於做二分類的模型，模型如式\ref{eq.3-2-5.2}所示。
+
+\begin{equation}
+\label{eq.3-2-5.2}
+\begin{aligned}
+	Y(x)\sim\~Bernoulli(\pi(x))\;\; \text{with}\;\; \log(x) = \frac{\pi(x)}{1-\pi(x)} = \beta_0+\beta_1x_1+...+\beta_px_p 
+\end{aligned}
+\end{equation}
+
+\begin{equation} 
+\nonumber
+\begin{aligned}
+\text{根據式3.21可以推得}\pi(x)= F(\beta_0+\beta_1x+...+\beta_px_p)\;\;,\text{其中} \;\; F(t)=\frac{e^t}{1+e^t}
+\end{aligned} 
+\end{equation}
+
+
+	傳統二元邏輯斯模型的輸出是二分類的，多元邏輯斯模型則是將二元邏輯斯模型推廣至多類問題，即可以具有兩種以上的分類結果。對K個可能的分類結果運行K-1個獨立二元邏輯斯模型，也就是把某一類別當成是主類別(如類別K)，而將其餘K-1個類別與主類別分別進行建模，根據式\ref{eq.3-2-5.4}的可得結果式\ref{eq.3-2-5.5}。
+
+\begin{equation}
+\label{eq.3-2-5.4}
+\begin{aligned}
+P(Y_i=K)& = 1-\sum_{k=1}^{K-1}P(Y_i=k) = 1-\sum_{k=1}^{K-1}P(Y_i=K)e^{\beta_kx_i}\\&
+=>P(Y_i=K) = \frac{1}{1+\sum_{k=1}^{K-1}e^{\beta_kx_i}}
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\label{eq.3-2-5.5}
+\begin{aligned}
+P(Y_i=m) = \frac{e^{\beta_{m}x_i}}{1+\sum_{k=1}^{K-1}e^{\beta_{k}x_i}}\;\;\;;\;\;\;m = 1,..., K-1 
+\end{aligned}
+\end{equation}
+
+
+
+\section{假設檢定與模擬方法}
+
+	過去統計模型強調的重點為「解釋能力」而非預測能力，在符合統計模型的前提假設之下，只能確保其有良好的模型解釋能力而非代表模型有良好的預測能力，本研究將以資料模擬的方法，模擬出符合前提假設之下的資料，驗證其配適出的模型是否也具有較佳的預測能力。	
+	
+	比例賠率假設(Proportional odds assumption)為次序型分類模型的前提假設，本章節將先介紹此前提假設與假設檢定的方法，再介紹資料模擬的演算法。
+	
+
+\subsection{比例賠率假設及檢定}
+
+	在3.2.1節中簡要介紹了「比例賠率假設(Proportional odds assumption)」，或稱「平行賠率假設(Parallel odds assumption)」，此假設意味著觀察到的解釋變量都有相同的勝算比(Odds ratio)，每個等級的模型差別只會差在截距項的不同，並共用每個解釋變數的斜率以獲得一個更簡約的模型。
+	
+	以表\ref{tab.3-4-2.1}呈現，該資料集解釋變數為性別，類別包含Boys和Girls，反應變數為英文考試成績，共有3、4、5、6與7五種等級，透過勝算比(Odds ratio)可以發現Girls的勝算(Odds)皆比Boys還高，因為達到更高水平的Girls比Boys還多，計算兩者勝算法(Odds ratio)會發現落在(1.77, 2.2)的區間範圍內，若我們給予一個共同勝算比(Odds ratio)為2，分別解讀可以得到Girls達到4+等級的勝算(Odds)比Boys達到4+等級的勝算(Odds)高2倍，Girls達到5+等級的勝算(Odds)比Boys達到5+等級的勝算(Odds)高2倍等，與實際勝算比(Odds ratio)相比不會相差太多，代表弱符合比例賠率假設(Proportional odds assumption)，可得到一個簡約的次序型分類模型。
+	
+\begin{table}[H]
+	\footnotesize
+    \centering
+    \extrarowheight=5pt
+    \caption{男孩和女孩英文成績水平的累積勝算(Odds)}\label{tab.3-4-2.1}
+\setlength{\tabcolsep}{4mm}{
+\begin{tabular}{llllll}
+Boys                             & 3          & 4             & 5             & 6             & 7             \\\hline
+Cumulative N boys                & 7177       & 6210          & 4838          & 2003          & 503           \\
+Cumulative proportion            & 1.00       & 0.87          & 0.67          & 0.28          & 0.07          \\
+Cumulative odds                  & -          & 6.42          & 2.07          & 0.39          & 0.08          \\
+Cumulative logit                 &            & 1.86          & 0.73          & -0.95         & -2.59         \\
+                                 &            &               &               &               &               \\
+Girls                            & 3          & 4             & 5             & 6             & 7             \\\hline
+Cumulative N boys                & 6987       & 6525          & 5621          & 2841          & 826           \\
+Cumulative proportion            & 1.00       & 0.93          & 0.80          & 0.41          & 0.12          \\
+Cumulative odds                  & -          & 14.12         & 4.11          & 0.69          & 0.13          \\
+Cumulative logit                 & -          & 2.665         & 1.41          & -0.38         & -2.01         \\
+                                 &            &               &               &               &               \\
+\textbf{Odds Ratio (Girls/Boys)} & \textbf{-} & \textbf{2.20} & \textbf{1.99} & \textbf{1.77} & \textbf{1.78} \\
+\textbf{Odds Ratio (Boys/Girls)} & \textbf{-} & \textbf{0.45} & \textbf{0.50} & \textbf{0.56} & \textbf{0.56}\\\hline
+\end{tabular}
+\begin{tablenotes}  
+        \item[1.]\;\;\;\;\;\;\;\;\;\;\;\;此表取自SRME home 5.3 Key Assumptions of Ordinal Regression
+\end{tablenotes}
+}\end{table}
+	
+	
+比例賠率假設的檢定問題如下:
+
+\begin{equation} \nonumber \left\{\begin{array}{l} H_0: logit[P(Y \leq j)] = \beta_{0j} + \beta^{'}X \;\;\;\;\;;\;\;\; j = 1, ... , J-1\\   H_1: logit[P(Y \leq j)] = \beta_{0j} + \beta^{'}_jX \;\;\;\;;\;\;\; j = 1, ... , J-1  \end{array}\right.
+\end{equation}
+
+	本研究中我們以R package「ordinal」裡的nominal\underline{ }test檢驗該資料集是否符合比例賠率假設(Proportional odds assumption)，該套件使用了概似比檢定(Likelihood ratio test)來做檢定。該檢定的檢定統計量為 -2($ln$(簡約模型) - $ln$(複雜模型))
+	
+	當解釋變數多、樣本量大的時候或者模型中包含連續的解釋變數，檢定結果幾乎會獲得非常小的P - value，因此應該更謹慎地做檢定，除了計算分數的檢定方法也可以用圖形判斷的方法做出更寬鬆的檢定。
+	
+
+	
+
+
+	
+
+\subsection{模擬方法}
+
+  	本研究中所用的模擬資料生成方法是從Cumulative Logit Model抽樣，該模型之介紹見3.2.1章節，首先我們生成閾值$\theta_j$且閾值伴隨著j有上升的趨勢$\nonumber - \infty \equiv \theta_0 \leq  ... \leq  \theta_J \equiv \infty$，並初始化參數$\beta$固定為1，再來從常態分配生成$x_i$計算後可求得每一個觀測值$x_i$對應到的各類別機率，最後透過多項分配抽樣求得每個觀測值所對應的目標變數$r_i$。
+  	
+
+	模擬資料生成演算法如下表: 	 
+\begin{algorithm}[H]   
+	\caption{模擬資料生成方法, 由次序型分類模型的分配生成資料}   
+	\label{alg.1}   
+	\begin{algorithmic}[1]   	   	
+		\State 初始化 $\beta$ = (1,1,...,1) $\in \mathbb{R}^f$ ;   	
+		\State 從$N(0,1^2)$生成第一個閾值$\theta_1$且$\theta_1 \in \mathbb{R}$;   
+		\State 閾值$\theta_j$滿足$\nonumber - \infty \equiv \theta_0 \leq  ... \leq  \theta_J \equiv \infty$;   		
+		\Ensure   	 
+		  模型參數$\beta$和${\theta_j}$生成次序值(反應變數)     
+		\For{(i in 1:$N$)}{     	
+			\State 從$N(0,1^2)$中生成$x_i$;
+			\State 計算$x^{T}_i\beta$;     	     		
+			\State 透過$F(x) = 1/(1+e^{-x})$，計算$P_r = F(\theta_j-x^{T}_i\beta) - F(\theta_{j-1}-x^{T}_i\beta)$;     		
+			\State 針對每個$x_i$，透過多項分配來獲得對應的$r_i$     		
+			\State $r_i \sim multinominal(N = 1, P_1, P_2,···, P_J )$; 	
+		\EndFor
+		} 		
+ 
+         
+
+	\end{algorithmic} 
+
+\end{algorithm}
+
+
+\section{詞嵌入 Word Embedding}
+	詞嵌入是自然語言處理（NLP）中語言模型與表徵學習技術的統稱，文字訊息為非結構化資料，若要使用文字資訊，須將文字轉成能夠運算的數字或向量，將一段文字(文本)映射至一連續向量空間即為詞嵌入。
+		
+	詞向量是由大量的文字、單詞依照在句中出現次數等方式所訓練出來的，現今多使用TF-IDF的方法，以及Word2vec透過神經網絡針對現有的資料集訓練出的詞向量，或是使用網路上大公司如Google等使用超級電腦加上大量的文章數經由神經網絡所訓練出來的詞向量並結合詞袋模型(Bag of Words Model)。
+	
+
+\subsection{詞袋模型與TF-IDF}
+
+	詞袋模型(Bag of Words Model)將對一篇文本中詞語的出現次數轉為數字，例如兩段話如下:
+\begin{enumerate}[A.]
+\setlength{\itemsep}{-10pt}
+\item Jason and Chris are playing basketball. Jason has a basketball.\item Jason is playing computer.
+\end{enumerate}
+
+	經由上面兩段文字我們可以觀察到出現過的詞語有Jason / and / Chris / are / playing / basketball / has / a / is / computer，使用詞袋模型的方法能將兩句話表示成以下向量:
+\begin{enumerate}[A.]
+\setlength{\itemsep}{-10pt}
+\item \text{[} 2, 1, 1, 1, 1, 2, 1, 1, 0, 0 \text{]}
+\item \text{[} 1, 0, 0, 0, 1, 0, 0, 0, 1, 1 \text{]}
+\end{enumerate}
+
+	詞向量矩陣能表示出文本中的所有詞語，故稱為詞袋模型，傳統詞袋模型只使用出現次數，某種程度上較難判斷出每個詞語在文本中的重要性，另一種方式則是使用TF-IDF的方法調整詞袋模型的權重。
+	
+	TF-IDF由Jones（1972）一文中提出，包含了兩個部分，分別為詞頻(TF-Term Frequency)與逆向文件頻率(IDF-Inverse Document Frequency)，為資料檢索中常使用到的工具，能夠量化每一個詞語在文本之中的重要程度。
+	
+	詞頻用來計算詞語在一篇文本中出現的頻率，愈常出現的詞語重要程度也更大，公式如式\ref{eq.3.2.1}，其中$n_{ij}$代表第j篇文本第i個詞語出現的次數，分母項$n_{kj}$代表第j篇文本中總詞語數。
+\begin{equation}\label{eq.3.2.1}
+TF_{ij}=\frac{n_{ij}}{\sum_{K}^{}n_{kj}}
+\end{equation}
+
+	而詞頻會有常用字出現次數過多的問題，如「的」、「我」與「你」等等，這些詞語通常不是一篇文本中的主要詞語，但在計算詞頻時卻會將這些常用字高估，因此需要IDF來衡量詞語在文本中的普遍性。
+	
+	逆向文件頻率用來衡量一個詞語在所有文本中的普遍性，如式\ref{eq.3.2.2}，其中D為總文本數，分母項為第i個詞語在所有文本中出現的文本次數，逆向文件頻率越小，代表一個詞語在越多文本中出現過，反之逆向文件頻率越大，代表一個詞語在越少文本中出現過，也就表示其不為常用字的可能性越大，所蘊含訊息也會更重要。
+\begin{equation}\label{eq.3.2.2}
+IDF_{i} = log\frac{D}{\left | \left \{ d_j:t_i\; \in d_j \right \} \right |}
+\end{equation}
+	
+	TF-IDF計算方式則是將詞頻與逆向文件頻率相乘，得出式\ref{eq.3.2.3}。
+\begin{equation}\label{eq.3.2.3}
+TF-IDF_{ij}= TF_{ij} * IDF_j
+\end{equation}
+
+	然而，當有一個詞語在每一篇文本都出現過時，會使逆向文件頻率為0，計算TF-IDF時不論詞頻多大，結果都為0，考量到其可能會造成資訊損失，我們將逆向文件頻率公式加以平滑化，如式\ref{eq.3.2.4}。
+	
+\begin{equation}\label{eq.3.2.4}
+IDF_{i}=log\frac{D+1}{\left | \left \{ d_j:t_i\; \in d_j \right \} \right |+1}+1
+\end{equation}
+
+	綜合上述，TF-IDF可以使我們衡量出每一個詞語在該文本中的特性，假設共有D篇文本，而所有文本共有V個詞語，可得出TF-IDF為一個D$\times$V的矩陣，以圖\ref{grap.3.3.1}表示TF-IDF法將文本中的文字轉為向量後的型態。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.7]{\imgdir TFIDF.png}
+    \caption{TFIDF示意圖}
+    \label{grap.3.3.1}
+\end{figure}
+	
+	詞袋模型存在三個較為明顯的缺點:
+\begin{enumerate}[A.]
+\setlength{\itemsep}{-10pt}
+\item 維度災難(curse of dimensionality)\\
+	若將所有文本經由斷字後包含5000個詞語，使用詞袋模型將會導致詞向量維度高達5000維，對於電腦計算來說是相當高的維度且運算複雜，稱為維度災難。
+\item 向量矩陣過於稀疏(sparse)\\
+	若某篇文本與其他篇文本出現的共同詞語較少，例如其中一篇文本為醫學領域，其餘文本為經濟領域，在醫學領域中出現的專有名詞如冠狀病毒、粒線體等，將會導致其餘文本在這些詞與的向量表示為0，此為稀疏矩陣問題。
+\item 無法表達前後文語意\\
+	由於詞袋模型是將每個詞語獨立表示，因此無法表達出前後語句關係，解決方法為用N-Gram的方式將個別詞語以N個為單位一起表示。
+\end{enumerate}
+	
+	我們可以只選擇較常出現的詞語，也就是選取較小的維度當作我們的詞向量以解決上述維度災難與稀疏矩陣的問題，後續也有學者提出各種方法用以得到更好的詞向量表達方式，以下我們將介紹Word2Vec的方法。
+	
+\subsection{CBOW (Continuous Bag Of Words)}
+	Word2Vec為 Mikolov等（2013）提出透過神經網絡經訓練詞向量的方法，其中包含CBOW及Skip-gram兩種訓練方式。Word2Vec的想法是透過鄰近詞語來定義一個詞語的語意，經由淺層神經網絡去計算該詞語的詞向量，每個詞語都被用一個向量來表示，訓練出來的詞向量可以用餘弦去計算其相似度(Cosine Similarity)，愈相關的詞語其相似度愈接近1，反之為0。
+	
+	Word2Vec的方法使一個詞語出現在不同的句子時，可以用很多不同的句子去定義該詞語的意思，例如我們可以透過下面兩句去訓練"Order"的詞向量。
+
+\begin{enumerate}[A.]
+\setlength{\itemsep}{-10pt}
+\item I would like to make an order for a large pine table. 
+\item I got an email saying that the order has been shipped.
+
+\end{enumerate}	
+	
+	CBOW以文本為單位，給定上下文來預測中心詞，例如一句子「拜登成功當選2020年美國總統」，經由斷字後可得「拜登」、「成功』、「當選」、「2020年」、「美國」、「總統」，而CBOW算法會將「拜登」、「成功」、「2020年」、「美國」作為輸入，輸出為「當選」，而下一輪將會下移變成「成功」、「當選」、「美國」、「總統」作為輸入，輸出為「2020年」，輸入個數取決於參數Window Size，上述範例為 Window Size = 4，示意如圖\ref{grap.3.3.2}。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.7]{\imgdir CBOW.png}
+    \caption{CBOW算法示意圖}
+    \label{grap.3.3.2}
+\end{figure}
+	
+	其中隱藏層的計算方式是針對語料庫中每一句Text的上下文c去計算中心詞w，透過最大化似然函數(likelihood)如式\ref{eq.3.3.2}，即為最大化中心詞出現的機率乘積，以達到最大化模型參數$\theta$。而式\ref{eq.3.3.3}分子代表的是中心詞與上下詞與的內積，我們的目標就是讓上下文詞語與中心詞的向量盡可能接近，分母部分則是計算整個語料庫中所有上下文詞語分別與中心詞向量內積的總合，總得來看，式\ref{eq.3.3.3}會將此機率限縮至0到1之間，相當於一個softmax函數。
+	
+\begin{equation}\label{eq.3.3.2}
+	arg\,\max\limits_{\theta}\prod_{w\in text}\left [ \prod_{c\in c(w))} p(w|c;\theta) \right ]
+\end{equation}
+
+\begin{equation}\label{eq.3.3.3}
+	p(c|w;\theta) = \frac{e^{v_c\cdot{v_w} }}{\sum_{{c}'\in C} e^{v_{c}'\cdot{v_w}}}
+\end{equation}
+	
+	而Word2vec透過神經網絡來訓練詞向量，透過輸入訓練樣本調整權重，讓整體預測的更準，也就是說 ，每個訓練樣本將會影響網絡中所有的權重，若訓練量一大，則會有運算速度上的問題，為解決這個問題，Mikolov（2013）提出負採樣(Negative Sampling)，此方法的特點在於每次只修改一小部分的權重而不是全部，通常選擇K個(K通常為10到20)Negative word，來更新所對應的權重參數，這樣一來可使神經網絡在更新權重參數時計算速度更快，而加上負採樣後的隱藏層計算公式為式\ref{eq.3.3.4}，其中$l$代表的是Logistic loss function。
+	
+\begin{equation}\label{eq.3.3.4}
+arg\,\max\limits_{\theta}\sum_{w\in text}\left [ \sum_{c\in c(w))} l(s(w_t,w_c))+ \sum_{c\in N(t))} l(-s(w_t,w_c)) \right ]
+\end{equation}
+
+	而CBOW訓練出來的詞向量將會結合3.3.1中所提及的詞袋模型作為我們的文本向量(Sentence Encoding)，如圖\ref{grap.3.3.3}為示，透過矩陣相乘後對每行向量取平均即為整個文本的輸入向量，其中CBOW所訓練出來的詞向量維度可以自行決定。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.7]{\imgdir CBOW2.png}
+    \caption{Stenence Encoding 示意圖}
+    \label{grap.3.3.3}
+\end{figure}
+
+\subsection{Skip-gram}
+	Skip-gram與CBOW相反，以文本為單位，用中心詞來預測上下文，例如「拜登成功當選2020年美國總統」，經由斷字後可得「拜登」、「成功」、「當選」、「2020年」、「美國」、「總統」，而Skip-gram算法會將「當選」作為輸入，「拜登」、「成功」、「2020年」、「美國」作為輸出，而下一輪將會下移變成，「2020年」作為輸入，「成功」、「當選」、「美國」、「總統」作為輸出，，輸入個數取決於參數Window Size，上述範例為 Window Size = 4，示意圖如圖\ref{grap.3.4.1}。
+
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.7]{\imgdir SKIPGRAM.png}
+    \caption{Skip-gram算法示意圖}
+    \label{grap.3.4.1}
+\end{figure}
+
+	Skip-gram算法於隱藏層計算如式\ref{eq.3.4.1}，其餘大致上皆與CBOW相同，最後也是會結合詞袋模型去作文本向量(Sentence Encoding)。
+	
+\begin{equation}\label{eq.3.4.1}
+	arg\,\max\limits_{\theta}\prod_{w\in text}\left [ \prod_{w\in c(w))} p(c|w;\theta) \right ]
+\end{equation}
+
+\subsection{Wiki Pretrain Word Embedding}
+
+	介紹完Word2Vec的方法後，這邊將介紹一個新方法FastText，由Bojanowski等（2017）與Joulin等（2016）前後提出其概念，後由Facebook團隊開發，FastText與CBOW方式相似，差別在於目的性的不同，FastText目標是文字分類，詞向量為中間產出，CBOW目標是預測中心詞，以圖\ref{grap.3.4.1}為例，FastText輸出為一個標籤而非單詞，而FastText的輸入多考慮了子詞(Subword)，這樣的特徵使得FastText在訓練時間上會花更久，而網路上也有比較FastText訓練出的詞向量與Word2Vec訓練出的詞向量，結果FastText所預測的更為準確。
+	
+\begin{figure}[H]
+    \centering
+        \includegraphics[scale=0.7]{\imgdir wiki.png}
+    \caption{CBOW算法於Word2Vec與FastText比較}
+    \label{grap.3.4.1}
+\end{figure}
+
+	在這邊我們將選用網路上的預訓練(Pretrain)詞向量，為Facebook使用維基百科上大量的語料庫結合高速運算電腦所訓練出來，與前兩者我們自己訓練的詞向量不同點在於，自己訓練的詞向量會更貼近於我們的資料集。
+
+%\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
